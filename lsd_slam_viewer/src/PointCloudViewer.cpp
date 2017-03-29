@@ -44,16 +44,16 @@
 
 PointCloudViewer::PointCloudViewer()
 {
-	setPathKey(Qt::Key_0,0);
-	setPathKey(Qt::Key_1,1);
-	setPathKey(Qt::Key_2,2);
-	setPathKey(Qt::Key_3,3);
-	setPathKey(Qt::Key_4,4);
-	setPathKey(Qt::Key_5,5);
-	setPathKey(Qt::Key_6,6);
-	setPathKey(Qt::Key_7,7);
-	setPathKey(Qt::Key_8,8);
-	setPathKey(Qt::Key_9,9);
+        setPathKey((int)Qt::Key_0,(int)0);
+        setPathKey((int)Qt::Key_1,(int)1);
+        setPathKey((int)Qt::Key_2,(int)2);
+        setPathKey((int)Qt::Key_3,(int)3);
+        setPathKey((int)Qt::Key_4,(int)4);
+        setPathKey((int)Qt::Key_5,(int)5);
+        setPathKey((int)Qt::Key_6,(int)6);
+        setPathKey((int)Qt::Key_7,(int)7);
+        setPathKey((int)Qt::Key_8,(int)8);
+        setPathKey((int)Qt::Key_9,(int)9);
 
 
 	currentCamDisplay = 0;
@@ -323,7 +323,7 @@ void PointCloudViewer::keyPressEvent(QKeyEvent *e)
     	  meddleMutex.lock();
 
 
-    	  float x,y,z;
+          float x,y,z;
     	  camera()->frame()->getPosition(x,y,z);
     	  animationList.push_back(AnimationObject(false, lastAnimTime, 2, qglviewer::Frame(qglviewer::Vec(0,0,0), camera()->frame()->orientation())));
     	  animationList.back().frame.setPosition(x,y,z);
