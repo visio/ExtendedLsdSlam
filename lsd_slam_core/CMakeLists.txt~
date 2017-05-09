@@ -82,7 +82,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/thirdparty/Sophus
   ${CSPARSE_INCLUDE_DIR} #Has been set by SuiteParse
   ${CHOLMOD_INCLUDE_DIR} #Has been set by SuiteParse
-#  /home/sergey/libs/g2o
+  /home/sergey/libs/g2o
 )
 
 

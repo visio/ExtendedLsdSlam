@@ -30,9 +30,9 @@
 #include <iostream>
 
 
-#include <GL/glx.h>
-#include <GL/gl.h>
-#include <GL/glu.h>
+//#include <GL/glx.h>
+//#include <GL/gl.h>
+//#include <GL/glu.h>
 
 #include "QGLViewer/manipulatedCameraFrame.h"
 
