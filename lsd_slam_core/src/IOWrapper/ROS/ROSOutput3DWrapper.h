@@ -23,6 +23,8 @@
 #include <ros/ros.h>
 #include "IOWrapper/Output3DWrapper.h"
 
+#include "foldercontroller.h"
+
 
 namespace lsd_slam
 {
@@ -100,5 +102,20 @@ private:
 	ros::Publisher pose_publisher;
 
 	ros::NodeHandle nh_;
+
+        // Temp solution - path coods file
+        std::ofstream*  m_sCameraPositionsFileStream;
+//        std::ofstream*  m_sKfPositionsFileStream;
+
+        // Temp solution - keyframes coods file
+        std::ofstream*  m_pKeyframesFileStream;
+
+        // Base path to otput dir
+        std::string     m_sOutputCoodsDir;
+
+        std::string     m_sOutputKFsFilePart;
+        char*           xyzFilenameFormat;
+        char*           xyzFilename;
+
 };
 }

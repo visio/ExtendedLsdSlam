@@ -16,12 +16,8 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 set(CMAKE_MODULE_PATH   ${PROJECT_SOURCE_DIR}/cmake ${CMAKE_MODULE_PATH})
 
-#find_package(Eigen3 REQUIRED)
-FIND_PATH( EIGEN3_INCLUDE_DIR  Eigen /usr/include/eigen3  )
-
-#find_package(SuiteParse REQUIRED) # Apparently needed by g2o
-#FIND_PATH( CSPARSE_INCLUDE_DIR  base_vertex.h /home/sergey/libs/g2o )
-
+find_package(Eigen3 REQUIRED)
+find_package(SuiteParse REQUIRED) # Apparently needed by g2o
 find_package(X11 REQUIRED)
 
 # FabMap
@@ -46,6 +42,11 @@ set(CMAKE_CXX_FLAGS
    "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -march=native  -std=c++0x"
 ) 
 
+# Set path to FolderControll
+set(folderController_SOURCE_DIR
+    /home/sergey/MyLsdSlamProject/Qt/libuvc_ros/libuvc_camera
+    )
+
 # Set source files
 set(lsd_SOURCE_FILES
   ${PROJECT_SOURCE_DIR}/src/DataStructures/Frame.cpp
@@ -68,6 +69,7 @@ set(lsd_SOURCE_FILES
   ${PROJECT_SOURCE_DIR}/src/GlobalMapping/KeyFrameGraph.cpp
   ${PROJECT_SOURCE_DIR}/src/GlobalMapping/g2oTypeSim3Sophus.cpp
   ${PROJECT_SOURCE_DIR}/src/GlobalMapping/TrackableKeyFrameSearch.cpp
+  ${folderController_SOURCE_DIR}/foldercontroller.cpp
 )
 set(SOURCE_FILES
   ${lsd_SOURCE_FILES}
@@ -82,7 +84,7 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/thirdparty/Sophus
   ${CSPARSE_INCLUDE_DIR} #Has been set by SuiteParse
   ${CHOLMOD_INCLUDE_DIR} #Has been set by SuiteParse
-#  /home/sergey/libs/g2o
+  ${folderController_SOURCE_DIR}
 )
 
 
