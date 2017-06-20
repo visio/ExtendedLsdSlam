@@ -61,7 +61,7 @@ class ROSOutput3DWrapper : public Output3DWrapper
 public:
 
 	// initializes cam-calib independent stuff
-	ROSOutput3DWrapper(int width, int height);
+    ROSOutput3DWrapper(int width, int height, std::string imagePath="", bool outputFiles = false);
 	~ROSOutput3DWrapper();
 
 	virtual void publishKeyframeGraph(KeyFrameGraph* graph);
@@ -103,7 +103,9 @@ private:
 
 	ros::NodeHandle nh_;
 
-        // Temp solution - path coods file
+        // Temp solution - path coods file ********************
+        bool m_bSaveOutputs;
+
         std::ofstream*  m_sCameraPositionsFileStream;
 //        std::ofstream*  m_sKfPositionsFileStream;
 
@@ -116,6 +118,9 @@ private:
         std::string     m_sOutputKFsFilePart;
         char*           xyzFilenameFormat;
         char*           xyzFilename;
+
+        // FolderContoller integration
+        FolderController* m_pOutputFolders;
 
 };
 }

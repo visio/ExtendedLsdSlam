@@ -35,12 +35,13 @@
 #include "geometry_msgs/PoseStamped.h"
 #include "GlobalMapping/g2oTypeSim3Sophus.h"
 
+#include <boost/filesystem.hpp>
 #include <inttypes.h>
 
 namespace lsd_slam
 {
 
-ROSOutput3DWrapper::ROSOutput3DWrapper(int width, int height)
+ROSOutput3DWrapper::ROSOutput3DWrapper(int width, int height, std::string imagePath, bool outputFiles)
 {
         this->width  = width;
         this->height = height;
@@ -60,58 +61,74 @@ ROSOutput3DWrapper::ROSOutput3DWrapper(int width, int height)
         pose_channel    = nh_.resolveName("lsd_slam/pose");
         pose_publisher  = nh_.advertise<geometry_msgs::PoseStamped>(pose_channel,1);
 
-        // Estimated camera positons file *********************************
-        std::string save_folder;
-        char        buf[500];
-        int         k;
-
-        save_folder = ros::package::getPath("lsd_slam_core")+"/slam_Coods_output/";
-        // Folder clening **
-        snprintf(buf,500,"rm -rf %s",save_folder.c_str());
-        k = system(buf);
-        snprintf(buf,500,"mkdir %s",save_folder.c_str());
-        k = system(buf);
-
-        save_folder = ros::package::getPath("lsd_slam_core")+"/slam_Coods_output/slamOriginCameraPositions.txt";
-
-        // File stream for estimated camera position data
-        m_sCameraPositionsFileStream = new std::ofstream( save_folder.c_str() );
-        // First Frame
-        *m_sCameraPositionsFileStream << "0 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" << std::endl;
-
-        // Estimated KFs positons file *********************************
-        save_folder = ros::package::getPath("lsd_slam_core")+"/slam_Coods_output/slamOriginKeyframesCoods.txt";
-        // File stream for estimated camera position data
-        m_pKeyframesFileStream = new std::ofstream( save_folder.c_str() );
-
-        // KFs output folder *******************************************
-        m_sOutputCoodsDir = ros::package::getPath("lsd_slam_core")+"/slam_KFs_output/";
-        // Folder clening **
-        snprintf(buf,500,"rm -rf %s",m_sOutputCoodsDir.c_str());
-        k = system(buf);
-        snprintf(buf,500,"mkdir %s",m_sOutputCoodsDir.c_str());
-        k = system(buf);
-
-        // KFs output file name ****************************************
-
-        // Path to dir with part of file name
-        m_sOutputKFsFilePart = m_sOutputCoodsDir +  "KeyFrame";
-
-        // Set template
-        xyzFilenameFormat = "%s_%010"PRIu32".xyz";
-
-        // Mesuring buffer length
-        int max_name_len = snprintf( NULL,
-                                     0,
-                                     xyzFilenameFormat,
-                                     m_sOutputKFsFilePart.data(),
-                                     UINT32_MAX         );
-
-
-        // Reserve buffer
-        xyzFilename = (char*)calloc( max_name_len + 1, sizeof(char) );
-
         publishLvl = 0;
+        // Folders controll ***********************************************
+        m_bSaveOutputs = outputFiles;
+        if( m_bSaveOutputs )
+        {
+            // Make path to images
+            boost::filesystem::path tempPath(imagePath);
+            // Get base path
+            tempPath = tempPath.parent_path();
+
+            // Set new output directory
+            m_pOutputFolders = new FolderController("slamOutput/", tempPath.string() );
+            // Make output folder
+            m_pOutputFolders->makeSubfolder("experiment");
+
+            // Estimated camera positons file *********************************
+    //        std::string save_folder;
+    //        char        buf[500];
+    //        int         k;
+    //        save_folder = ros::package::getPath("lsd_slam_core")+"/slam_Coods_output/";
+    //        // Folder clening **
+    //        snprintf(buf,500,"rm -rf %s",save_folder.c_str());
+    //        k = system(buf);
+    //        snprintf(buf,500,"mkdir %s",save_folder.c_str());
+    //        k = system(buf);
+    //        save_folder = ros::package::getPath("lsd_slam_core")+"/slam_Coods_output/slamOriginCameraPositions.txt";
+
+            boost::filesystem::create_directory( m_pOutputFolders->getCurrentSubfloder() + "/slam_Coods_output" );
+
+            std::string filePath = m_pOutputFolders->getCurrentSubfloder() + "slam_Coods_output/slamOriginCameraPositions.txt" ;
+            // File stream for estimated camera position data
+            m_sCameraPositionsFileStream = new std::ofstream( filePath.c_str() );
+            // First Frame
+            *m_sCameraPositionsFileStream << "0 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 0 1" << std::endl;
+
+            // Estimated KFs positons file *********************************
+            filePath = m_pOutputFolders->getCurrentSubfloder() + "slam_Coods_output/slamOriginKeyframesCoods.txt";
+            // File stream for estimated camera position data
+            m_pKeyframesFileStream = new std::ofstream( filePath.c_str() );
+
+            // KFs output folder *******************************************
+            m_sOutputCoodsDir = m_pOutputFolders->getCurrentSubfloder() + "/slam_KFs_output/";
+            boost::filesystem::create_directory( m_sOutputCoodsDir );
+
+    //        // Folder clening **
+    //        snprintf(buf,500,"rm -rf %s",m_sOutputCoodsDir.c_str());
+    //        k = system(buf);
+    //        snprintf(buf,500,"mkdir %s",m_sOutputCoodsDir.c_str());
+    //        k = system(buf);
+
+            // KFs output file name ****************************************
+            // Path to dir with part of file name
+            m_sOutputKFsFilePart = m_sOutputCoodsDir +  "KeyFrame";
+
+            // Set template
+            xyzFilenameFormat = "%s_%010"PRIu32".xyz";
+
+            // Mesuring buffer length
+            int max_name_len = snprintf( NULL,
+                                         0,
+                                         xyzFilenameFormat,
+                                         m_sOutputKFsFilePart.data(),
+                                         UINT32_MAX         );
+
+
+            // Reserve buffer
+            xyzFilename = (char*)calloc( max_name_len + 1, sizeof(char) );
+        }
 }
 
 ROSOutput3DWrapper::~ROSOutput3DWrapper()
@@ -173,90 +190,93 @@ void ROSOutput3DWrapper::publishKeyframe(Frame* f)
 	keyframe_publisher.publish(fMsg);
 
     //************************************************ My part
-    // Make new file name
-    sprintf( xyzFilename, xyzFilenameFormat, m_sOutputKFsFilePart.data(), f->id() );
-
-    // open file stream
-    std::ofstream* pXyzStream = new std::ofstream( xyzFilename );
-
-    // Save id of frame
-    *pXyzStream << f->id() << std::endl;
-
-    // Save image size
-    int wight = f->width ( publishLvl );
-    int hight = f->height( publishLvl );
-
-    *pXyzStream << wight << " " << hight << std::endl;
-
-    // Copy camera params
-    *pXyzStream << f->fx( publishLvl ) << " ";
-    *pXyzStream << f->fy( publishLvl ) << " ";
-    *pXyzStream << f->cx( publishLvl ) << " ";
-    *pXyzStream << f->cy( publishLvl ) << " ";
-    *pXyzStream << std::endl;
-
-    // Temp Solution for translation
-    double x, y, z, w, s;
-
-    //
-    Sim3 camToWorld = f->getScaledCamToWorld();
-
-    x = camToWorld.translation()[0];
-    y = camToWorld.translation()[1];
-    z = camToWorld.translation()[2];
-
-    *pXyzStream             << " " << x << " " << y << " " << z;
-
-    *m_pKeyframesFileStream << f->id() << " " << x << " " << y << " " << z;
-
-    x = camToWorld.quaternion().x();
-    y = camToWorld.quaternion().y();
-    z = camToWorld.quaternion().z();
-    w = camToWorld.quaternion().w();
-
-    s = camToWorld.scale();
-
-    if (  w < 0)
+    if( m_bSaveOutputs )
     {
-        x *= -1;
-        y *= -1;
-        z *= -1;
-        w *= -1;
-    }
+        // Make new file name
+        sprintf( xyzFilename, xyzFilenameFormat, m_sOutputKFsFilePart.data(), f->id() );
 
-//    *pXyzStream             <<  " " << w << " " << x << " " << y << " " << z << " " << s << std::endl;
+        // open file stream
+        std::ofstream* pXyzStream = new std::ofstream( xyzFilename );
 
-    *m_pKeyframesFileStream <<  " " << w << " " << x << " " << y << " " << z << " " << s << std::endl;
+        // Save id of frame
+        *pXyzStream << f->id() << std::endl;
 
-    // Depth INFO save to file
-    /*const float**/ idepth     = f->idepth     (publishLvl);
-    /*const float**/ idepthVar  = f->idepthVar  (publishLvl);
-    /*const float**/ color      = f->image      (publishLvl);
+        // Save image size
+        int wight = f->width ( publishLvl );
+        int hight = f->height( publishLvl );
 
-    for( int idx = 0; idx < wight * hight; idx++ )
-    {
-        *pXyzStream << idepth    [idx] << " ";
-        *pXyzStream << idepthVar [idx] << " ";
+        *pXyzStream << wight << " " << hight << std::endl;
 
-        *pXyzStream << color[idx] << " ";
-        *pXyzStream << color[idx] << " ";
-        *pXyzStream << color[idx] << " ";
-        *pXyzStream << color[idx] << " ";
-
+        // Copy camera params
+        *pXyzStream << f->fx( publishLvl ) << " ";
+        *pXyzStream << f->fy( publishLvl ) << " ";
+        *pXyzStream << f->cx( publishLvl ) << " ";
+        *pXyzStream << f->cy( publishLvl ) << " ";
         *pXyzStream << std::endl;
-    }
 
-    // close file stream
-    pXyzStream->flush();
-    pXyzStream->close();
+        // Temp Solution for translation
+        double x, y, z, w, s;
+
+        //
+        Sim3 camToWorld = f->getScaledCamToWorld();
+
+        x = camToWorld.translation()[0];
+        y = camToWorld.translation()[1];
+        z = camToWorld.translation()[2];
+
+        *pXyzStream             << " " << x << " " << y << " " << z;
+
+        *m_pKeyframesFileStream << f->id() << " " << x << " " << y << " " << z;
+
+        x = camToWorld.quaternion().x();
+        y = camToWorld.quaternion().y();
+        z = camToWorld.quaternion().z();
+        w = camToWorld.quaternion().w();
+
+        s = camToWorld.scale();
+
+        if (  w < 0)
+        {
+            x *= -1;
+            y *= -1;
+            z *= -1;
+            w *= -1;
+        }
+
+    //    *pXyzStream             <<  " " << w << " " << x << " " << y << " " << z << " " << s << std::endl;
+
+        *m_pKeyframesFileStream <<  " " << w << " " << x << " " << y << " " << z << " " << s << std::endl;
+
+        // Depth INFO save to file
+        /*const float**/ idepth     = f->idepth     (publishLvl);
+        /*const float**/ idepthVar  = f->idepthVar  (publishLvl);
+        /*const float**/ color      = f->image      (publishLvl);
+
+        for( int idx = 0; idx < wight * hight; idx++ )
+        {
+            *pXyzStream << idepth    [idx] << " ";
+            *pXyzStream << idepthVar [idx] << " ";
+
+            *pXyzStream << color[idx] << " ";
+            *pXyzStream << color[idx] << " ";
+            *pXyzStream << color[idx] << " ";
+            *pXyzStream << color[idx] << " ";
+
+            *pXyzStream << std::endl;
+        }
+
+        // close file stream
+        pXyzStream->flush();
+        pXyzStream->close();
+    }
 }
 
 void ROSOutput3DWrapper::publishTrackedFrame(Frame* kf)
 {
 	lsd_slam_viewer::keyframeMsg fMsg;
 
-        fMsg.id         = kf->id();
-        fMsg.time       = kf->timestamp();
+    fMsg.id         = kf->id();
+    fMsg.time       = kf->timestamp();
 	fMsg.isKeyframe = false;
 
 	memcpy(fMsg.camToWorld.data(),kf->getScaledCamToWorld().cast<float>().data(),sizeof(float)*7);
@@ -266,7 +286,7 @@ void ROSOutput3DWrapper::publishTrackedFrame(Frame* kf)
 	fMsg.cx = kf->cx(publishLvl);
 	fMsg.cy = kf->cy(publishLvl);
 
-        fMsg.width  = kf->width(publishLvl);
+    fMsg.width  = kf->width(publishLvl);
 	fMsg.height = kf->height(publishLvl);
 
 	fMsg.pointcloud.clear();
@@ -298,7 +318,10 @@ void ROSOutput3DWrapper::publishTrackedFrame(Frame* kf)
 	pMsg.header.frame_id = "world";
 	pose_publisher.publish(pMsg);
 
+
         //**************************************************************
+    if( m_bSaveOutputs )
+    {
         float sim3T[3], sim3Q[4], sim3S;
         float  se3T[3],  se3Q[4],  se3S;
 
@@ -400,6 +423,7 @@ void ROSOutput3DWrapper::publishTrackedFrame(Frame* kf)
                                         << " " << m(2,0) << " " << m(2,1) << " " << m(2,2)  << " " << m(2,3)
                                         << " " << m(3,0) << " " << m(3,1) << " " << m(3,2)  << " " << m(3,3) << std::endl;
 
+    }
 }
 
 

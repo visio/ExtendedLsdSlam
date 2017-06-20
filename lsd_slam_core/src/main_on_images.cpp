@@ -167,26 +167,27 @@ int main( int argc, char** argv )
 	Sophus::Matrix3f K;
 	K << fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0;
 
+    // open image files: first try to open as file.
+    std::string source;
+    std::vector<std::string> files;
+    if(!ros::param::get("~files", source))
+    {
+        printf("need source files! (set using _files:=FOLDER)\n");
+        exit(0);
+    }
+    ros::param::del("~files");
+
+    // open image files: first try to open as file.
+    bool saveRes = false;
+    ros::param::get("~saveResults", saveRes);
 
 	// make output wrapper. just set to zero if no output is required.
-	Output3DWrapper* outputWrapper = new ROSOutput3DWrapper(w,h);
+    Output3DWrapper* outputWrapper = new ROSOutput3DWrapper(w,h, source, saveRes);
 
 
 	// make slam system
 	SlamSystem* system = new SlamSystem(w, h, K, doSlam);
 	system->setVisualization(outputWrapper);
-
-
-
-	// open image files: first try to open as file.
-	std::string source;
-	std::vector<std::string> files;
-	if(!ros::param::get("~files", source))
-	{
-		printf("need source files! (set using _files:=FOLDER)\n");
-		exit(0);
-	}
-	ros::param::del("~files");
 
 
 	if(getdir(source, files) >= 0)
