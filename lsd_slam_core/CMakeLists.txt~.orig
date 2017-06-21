@@ -43,9 +43,15 @@ set(CMAKE_CXX_FLAGS
 ) 
 
 # Set path to FolderControll
+<<<<<<< HEAD
+set(folderController_SOURCE_DIR
+    /home/sergey/MyLsdSlamProject/Qt/libuvc_ros/libuvc_camera
+    )
+=======
 #set(folderController_SOURCE_DIR
 #    /home/sergey/MyLsdSlamProject/Qt/libuvc_ros/libuvc_camera
 #    )
+>>>>>>> f30a2f490811ee237faf35fa477e3c5f6378fe3b
 
 # Set source files
 set(lsd_SOURCE_FILES
@@ -60,7 +66,10 @@ set(lsd_SOURCE_FILES
   ${PROJECT_SOURCE_DIR}/src/util/SophusUtil.cpp
   ${PROJECT_SOURCE_DIR}/src/util/settings.cpp
   ${PROJECT_SOURCE_DIR}/src/util/Undistorter.cpp
+<<<<<<< HEAD
+=======
   ${PROJECT_SOURCE_DIR}/src/util/foldercontroller.cpp
+>>>>>>> f30a2f490811ee237faf35fa477e3c5f6378fe3b
   ${PROJECT_SOURCE_DIR}/src/Tracking/Sim3Tracker.cpp
   ${PROJECT_SOURCE_DIR}/src/Tracking/Relocalizer.cpp
   ${PROJECT_SOURCE_DIR}/src/Tracking/SE3Tracker.cpp
@@ -70,6 +79,10 @@ set(lsd_SOURCE_FILES
   ${PROJECT_SOURCE_DIR}/src/GlobalMapping/KeyFrameGraph.cpp
   ${PROJECT_SOURCE_DIR}/src/GlobalMapping/g2oTypeSim3Sophus.cpp
   ${PROJECT_SOURCE_DIR}/src/GlobalMapping/TrackableKeyFrameSearch.cpp
+<<<<<<< HEAD
+  ${folderController_SOURCE_DIR}/foldercontroller.cpp
+=======
+>>>>>>> f30a2f490811ee237faf35fa477e3c5f6378fe3b
 )
 set(SOURCE_FILES
   ${lsd_SOURCE_FILES}

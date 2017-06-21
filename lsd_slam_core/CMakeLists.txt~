@@ -43,9 +43,9 @@ set(CMAKE_CXX_FLAGS
 ) 
 
 # Set path to FolderControll
-set(folderController_SOURCE_DIR
-    /home/sergey/MyLsdSlamProject/Qt/libuvc_ros/libuvc_camera
-    )
+#set(folderController_SOURCE_DIR
+#    /home/sergey/MyLsdSlamProject/Qt/libuvc_ros/libuvc_camera
+#    )
 
 # Set source files
 set(lsd_SOURCE_FILES
@@ -60,6 +60,7 @@ set(lsd_SOURCE_FILES
   ${PROJECT_SOURCE_DIR}/src/util/SophusUtil.cpp
   ${PROJECT_SOURCE_DIR}/src/util/settings.cpp
   ${PROJECT_SOURCE_DIR}/src/util/Undistorter.cpp
+  ${PROJECT_SOURCE_DIR}/src/util/foldercontroller.cpp
   ${PROJECT_SOURCE_DIR}/src/Tracking/Sim3Tracker.cpp
   ${PROJECT_SOURCE_DIR}/src/Tracking/Relocalizer.cpp
   ${PROJECT_SOURCE_DIR}/src/Tracking/SE3Tracker.cpp

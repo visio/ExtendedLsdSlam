@@ -32,3 +32,5 @@ cmake_install.cmake
 *.user
 
 *.zip
+
+lsd_slam_core/slam_KFs_output/
