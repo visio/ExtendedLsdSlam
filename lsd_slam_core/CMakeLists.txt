@@ -35,17 +35,21 @@ gencfg()
 # SSE flags
 rosbuild_check_for_sse()
 add_definitions("-DUSE_ROS")
-#add_definitions("-DENABLE_SSE")
-add_definitions("-DENABLE_NEON")
 
-# Also add some useful compiler flag
-#set(CMAKE_CXX_FLAGS
-#   "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -march=native  -std=c++0x"
-#) 
+IF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm") 
+	add_definitions("-DENABLE_NEON")
+	set(CMAKE_CXX_FLAGS
+   	"${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -mfpu=neon  -std=c++0x"
+	)
 
-set(CMAKE_CXX_FLAGS
-   "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -mfpu=neon  -std=c++0x"
-)
+ELSE(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+	add_definitions("-DENABLE_SSE")
+	# Also add some useful compiler flag
+	set(CMAKE_CXX_FLAGS
+	   "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -march=native  -std=c++0x"
+	) 
+
+ENDIF(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
 
 # Set path to FolderControll
 #set(folderController_SOURCE_DIR
