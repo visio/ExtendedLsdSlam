@@ -35,12 +35,17 @@ gencfg()
 # SSE flags
 rosbuild_check_for_sse()
 add_definitions("-DUSE_ROS")
-add_definitions("-DENABLE_SSE")
+#add_definitions("-DENABLE_SSE")
+add_definitions("-DENABLE_NEON")
 
 # Also add some useful compiler flag
+#set(CMAKE_CXX_FLAGS
+#   "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -march=native  -std=c++0x"
+#) 
+
 set(CMAKE_CXX_FLAGS
-   "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -march=native  -std=c++0x"
-) 
+   "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -mfpu=neon  -std=c++0x"
+)
 
 # Set path to FolderControll
 #set(folderController_SOURCE_DIR
@@ -70,7 +75,6 @@ set(lsd_SOURCE_FILES
   ${PROJECT_SOURCE_DIR}/src/GlobalMapping/KeyFrameGraph.cpp
   ${PROJECT_SOURCE_DIR}/src/GlobalMapping/g2oTypeSim3Sophus.cpp
   ${PROJECT_SOURCE_DIR}/src/GlobalMapping/TrackableKeyFrameSearch.cpp
-  ${folderController_SOURCE_DIR}/foldercontroller.cpp
 )
 set(SOURCE_FILES
   ${lsd_SOURCE_FILES}

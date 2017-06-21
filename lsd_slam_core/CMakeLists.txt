@@ -35,12 +35,17 @@ gencfg()
 # SSE flags
 rosbuild_check_for_sse()
 add_definitions("-DUSE_ROS")
-add_definitions("-DENABLE_SSE")
+#add_definitions("-DENABLE_SSE")
+add_definitions("-DENABLE_NEON")
 
 # Also add some useful compiler flag
+#set(CMAKE_CXX_FLAGS
+#   "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -march=native  -std=c++0x"
+#) 
+
 set(CMAKE_CXX_FLAGS
-   "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -march=native  -std=c++0x"
-) 
+   "${CMAKE_CXX_FLAGS} ${SSE_FLAGS} -mfpu=neon  -std=c++0x"
+)
 
 # Set path to FolderControll
 #set(folderController_SOURCE_DIR
@@ -81,6 +86,7 @@ set(SOURCE_FILES
 include_directories(
   ${EIGEN3_INCLUDE_DIR}
   ${PROJECT_SOURCE_DIR}/src
+  ${PROJECT_SOURCE_DIR}/src/util
   ${PROJECT_SOURCE_DIR}/thirdparty/Sophus
   ${CSPARSE_INCLUDE_DIR} #Has been set by SuiteParse
   ${CHOLMOD_INCLUDE_DIR} #Has been set by SuiteParse
