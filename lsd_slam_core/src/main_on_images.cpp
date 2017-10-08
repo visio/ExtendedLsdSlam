@@ -127,21 +127,24 @@ int getFile (std::string source, std::vector<std::string> &files)
 using namespace lsd_slam;
 int main( int argc, char** argv )
 {
+    // init slam
 	ros::init(argc, argv, "LSD_SLAM");
 
+    // ********* Dinamic Reconfigure initializing
 	dynamic_reconfigure::Server<lsd_slam_core::LSDParamsConfig> srv(ros::NodeHandle("~"));
 	srv.setCallback(dynConfCb);
 
 	dynamic_reconfigure::Server<lsd_slam_core::LSDDebugParamsConfig> srvDebug(ros::NodeHandle("~Debug"));
 	srvDebug.setCallback(dynConfCbDebug);
 
+    // Get current package path
 	packagePath = ros::package::getPath("lsd_slam_core")+"/";
 
-
+    // ************ READING CALIBRATION FILE ********************************************
 	// get camera calibration in form of an undistorter object.
 	// if no undistortion is required, the undistorter will just pass images through.
-	std::string calibFile;
-	Undistorter* undistorter = 0;
+    std::string     calibFile;
+    Undistorter*    undistorter = 0;
 	if(ros::param::get("~calib", calibFile))
 	{
 		 undistorter = Undistorter::getUndistorterForFile(calibFile.c_str());
@@ -167,6 +170,7 @@ int main( int argc, char** argv )
 	Sophus::Matrix3f K;
 	K << fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0;
 
+    // ************************* Open IMAGE Files ***********************************
     // open image files: first try to open as file.
     std::string source;
     std::vector<std::string> files;
@@ -177,6 +181,7 @@ int main( int argc, char** argv )
     }
     ros::param::del("~files");
 
+    // ************************* My FLAG FOR SAVING Results *************************
     // open image files: first try to open as file.
     bool saveRes = false;
     ros::param::get("~saveResults", saveRes);
@@ -184,11 +189,9 @@ int main( int argc, char** argv )
 	// make output wrapper. just set to zero if no output is required.
     Output3DWrapper* outputWrapper = new ROSOutput3DWrapper(w,h, source, saveRes);
 
-
 	// make slam system
 	SlamSystem* system = new SlamSystem(w, h, K, doSlam);
 	system->setVisualization(outputWrapper);
-
 
 	if(getdir(source, files) >= 0)
 	{

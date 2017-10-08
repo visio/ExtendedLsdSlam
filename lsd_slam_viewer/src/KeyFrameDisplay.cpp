@@ -107,42 +107,44 @@ void KeyFrameDisplay::refreshPC()
 {
 //	minNearSupport = 9;
 	bool paramsStillGood = my_scaledTH == scaledDepthVarTH &&
-			my_absTH == absDepthVarTH &&
-			my_scale*1.2 > camToWorld.scale() &&
-			my_scale < camToWorld.scale()*1.2 &&
-			my_minNearSupport == minNearSupport &&
+            my_absTH == absDepthVarTH               &&
+            my_scale*1.2 > camToWorld.scale()       &&
+            my_scale < camToWorld.scale()*1.2       &&
+            my_minNearSupport == minNearSupport     &&
 			my_sparsifyFactor == sparsifyFactor;
 
+    if(     glBuffersValid &&
+        (   paramsStillGood || numRefreshedAlready > 10) )
+            return;
 
-
-	if(glBuffersValid && (paramsStillGood || numRefreshedAlready > 10)) return;
 	numRefreshedAlready++;
 
 	glBuffersValid = true;
 
-
 	// delete old vertex buffer
-	if(vertexBufferIdValid)
+    if( vertexBufferIdValid )
 	{
 		glDeleteBuffers(1, &vertexBufferId);
 		vertexBufferIdValid = false;
 	}
 
-
-
 	// if there are no vertices, done!
 	if(originalInput == 0)
 		return;
 
-
 	// make data
 	MyVertex* tmpBuffer = new MyVertex[width*height];
 
-	my_scaledTH =scaledDepthVarTH;
-	my_absTH = absDepthVarTH;
-	my_scale = camToWorld.scale();
-	my_minNearSupport = minNearSupport;
-	my_sparsifyFactor = sparsifyFactor;
+    my_scaledTH         = scaledDepthVarTH;
+    my_absTH            = absDepthVarTH;
+    my_scale            = camToWorld.scale();
+    my_minNearSupport   = minNearSupport;
+    my_sparsifyFactor   = sparsifyFactor;
+
+    // Print scale
+    std::cout << "Frame id = " << id << " ";
+    std::cout << "my_scale = " << my_scale << std::endl;
+
 	// data is directly in ros message, in correct format.
 	vertexBufferNumPoints = 0;
 
@@ -150,29 +152,34 @@ void KeyFrameDisplay::refreshPC()
 	for(int y=1;y<height-1;y++)
 		for(int x=1;x<width-1;x++)
 		{
-			if(originalInput[x+y*width].idepth <= 0) continue;
+            if( originalInput[x+y*width].idepth <= 0 )
+                continue;
+
+            // Increment counter
 			total++;
 
+            if( my_sparsifyFactor           > 1 &&
+                rand() % my_sparsifyFactor != 0         )
+                continue;
 
-			if(my_sparsifyFactor > 1 && rand()%my_sparsifyFactor != 0) continue;
-
-			float depth = 1 / originalInput[x+y*width].idepth;
-			float depth4 = depth*depth; depth4*= depth4;
+            float depth     = 1 / originalInput[x+y*width].idepth;
+            float depth4    = depth * depth; depth4 *= depth4;
 
 
 			if(originalInput[x+y*width].idepth_var * depth4 > my_scaledTH)
 				continue;
 
-			if(originalInput[x+y*width].idepth_var * depth4 * my_scale*my_scale > my_absTH)
+            if(originalInput[x+y*width].idepth_var * depth4 * my_scale * my_scale > my_absTH)
 				continue;
 
 			if(my_minNearSupport > 1)
 			{
 				int nearSupport = 0;
-				for(int dx=-1;dx<2;dx++)
-					for(int dy=-1;dy<2;dy++)
+                for(int dx = -1; dx < 2; dx++)
+                    for(int dy = -1; dy < 2; dy++ )
 					{
-						int idx = x+dx+(y+dy)*width;
+                        int idx = x + dx + ( y + dy ) * width;
+
 						if(originalInput[idx].idepth > 0)
 						{
 							float diff = originalInput[idx].idepth - 1.0f / depth;
@@ -197,7 +204,7 @@ void KeyFrameDisplay::refreshPC()
 			vertexBufferNumPoints++;
 			displayed++;
 		}
-	totalPoints = total;
+    totalPoints     = total;
 	displayedPoints = displayed;
 
 	// create new ones, static
@@ -207,21 +214,14 @@ void KeyFrameDisplay::refreshPC()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(MyVertex) * vertexBufferNumPoints, tmpBuffer, GL_STATIC_DRAW);
 	vertexBufferIdValid = true;
 
-
-
 	if(!keepInMemory)
 	{
 		delete[] originalInput;
 		originalInput = 0;
 	}
 
-
-
-
 	delete[] tmpBuffer;
 }
-
-
 
 void KeyFrameDisplay::drawCam(float lineWidth, float* color)
 {

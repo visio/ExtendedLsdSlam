@@ -6,6 +6,9 @@ bool isKeyframe
 # may change with keyframeGraph-updates.
 float32[7] camToWorld 
 
+# Append for check Lie group convertions
+float32[16] fullMatrix		# Full tranformation matrix
+float32 my_scale		# Using for temporary solution
 
 # camera parameter (fx fy cx cy), width, height
 # will never change, but required for display.

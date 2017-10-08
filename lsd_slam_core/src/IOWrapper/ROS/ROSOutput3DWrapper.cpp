@@ -156,11 +156,23 @@ void ROSOutput3DWrapper::publishKeyframe(Frame* f)
     int h       = f->height(publishLvl);
 
     // Save camera parameters
-	memcpy(fMsg.camToWorld.data(),f->getScaledCamToWorld().cast<float>().data(),sizeof(float)*7);
+    memcpy( fMsg.camToWorld.data(),
+            f->getScaledCamToWorld().cast<float>().data(),
+            sizeof(float) * 7 );
+
 	fMsg.fx = f->fx(publishLvl);
-	fMsg.fy = f->fy(publishLvl);
+    fMsg.fy = f->fy(publishLvl);
 	fMsg.cx = f->cx(publishLvl);
     fMsg.cy = f->cy(publishLvl);
+
+    // Save "my_scale" ***********************************
+    fMsg.my_scale = f->getScaledCamToWorld().scale();
+    // Get transformation matrix
+    Sophus::Matrix4f m = f->getScaledCamToWorld().matrix();
+//    // Save "fullMatrix"
+//    memcpy( fMsg.fullMatrix.data(),
+//            (float*)m.data(),
+//            sizeof(float) * 16 );
 
     // Save frame size to message
     fMsg.width  = wide;

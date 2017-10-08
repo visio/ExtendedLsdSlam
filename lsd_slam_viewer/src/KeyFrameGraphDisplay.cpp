@@ -109,9 +109,6 @@ void KeyFrameGraphDisplay::draw()
 		printNumbers = false;
 	}
 
-
-
-
 	if(showConstraints)
 	{
 		// draw constraints

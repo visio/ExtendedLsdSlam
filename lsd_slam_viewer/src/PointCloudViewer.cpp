@@ -126,12 +126,16 @@ void PointCloudViewer::addFrameMsg(lsd_slam_viewer::keyframeMsgConstPtr msg)
 	{
 		if(currentCamDisplay->id > msg->id)
 		{
-			printf("detected backward-jump in id (%d to %d), resetting!\n", currentCamDisplay->id, msg->id);
+            printf( "detected backward-jump in id (%d to %d), resetting!\n",
+                    currentCamDisplay->id,
+                    msg->id );
+
 			resetRequested = true;
 		}
 		currentCamDisplay->setFrom(msg);
-		lastAnimTime = lastCamTime = msg->time;
-		lastCamID = msg->id;
+
+        lastAnimTime    = lastCamTime = msg->time;
+        lastCamID       = msg->id;
 	}
 	else
 		graphDisplay->addMsg(msg);

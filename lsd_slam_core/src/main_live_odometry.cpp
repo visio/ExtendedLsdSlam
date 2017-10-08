@@ -35,18 +35,23 @@
 using namespace lsd_slam;
 int main( int argc, char** argv )
 {
+    // X Windows initializing
     XInitThreads();
 
+    // init ROS LSD-SLAM
 	ros::init(argc, argv, "LSD_SLAM");
 
+    // ************************* Open IMAGE Files ***********************************
 	dynamic_reconfigure::Server<lsd_slam_core::LSDParamsConfig> srv(ros::NodeHandle("~"));
 	srv.setCallback(dynConfCb);
 
 	dynamic_reconfigure::Server<lsd_slam_core::LSDDebugParamsConfig> srvDebug(ros::NodeHandle("~Debug"));
 	srvDebug.setCallback(dynConfCbDebug);
 
+    // Get current package path
 	packagePath = ros::package::getPath("lsd_slam_core")+"/";
 
+    // ************ READING CALIBRATION FILE ********************************************
 	InputImageStream* inputStream = new ROSImageStreamThread();
 
 	std::string calibFile;
@@ -57,13 +62,19 @@ int main( int argc, char** argv )
 	}
 	else
 		inputStream->setCalibration("");
+
+    // Run input stream
 	inputStream->run();
 
-	Output3DWrapper* outputWrapper = new ROSOutput3DWrapper(inputStream->width(), inputStream->height());
-	LiveSLAMWrapper slamNode(inputStream, outputWrapper);
+    // ************************* My FLAG FOR SAVING Results *****************************
+    // open image files: first try to open as file.
+    bool saveRes = false;
+    ros::param::get("~saveResults", saveRes);
+
+    // initialize output wrapper
+    Output3DWrapper*    outputWrapper = new ROSOutput3DWrapper( inputStream->width(), inputStream->height() );
+    LiveSLAMWrapper     slamNode(inputStream, outputWrapper);
 	slamNode.Loop();
-
-
 
 	if (inputStream != nullptr)
 		delete inputStream;

@@ -45,31 +45,31 @@ PointCloudViewer* viewer = 0;
 void dynConfCb(lsd_slam_viewer::LSDSLAMViewerParamsConfig &config, uint32_t level)
 {
 
-	pointTesselation = config.pointTesselation;
-	lineTesselation = config.lineTesselation;
+    pointTesselation    = config.pointTesselation;
+    lineTesselation     = config.lineTesselation;
 
-	keepInMemory = config.keepInMemory;
-	showKFCameras = config.showKFCameras;
-	showKFPointclouds = config.showKFPointclouds;
-	showConstraints = config.showConstraints;
-	showCurrentCamera = config.showCurrentCamera;
-	showCurrentPointcloud = config.showCurrentPointcloud;
+    keepInMemory            = config.keepInMemory;
+    showKFCameras           = config.showKFCameras;
+    showKFPointclouds       = config.showKFPointclouds;
+    showConstraints         = config.showConstraints;
+    showCurrentCamera       = config.showCurrentCamera;
+    showCurrentPointcloud   = config.showCurrentPointcloud;
 
 
-	scaledDepthVarTH = exp10( config.scaledDepthVarTH );
-	absDepthVarTH = exp10( config.absDepthVarTH );
-	minNearSupport = config.minNearSupport;
-	sparsifyFactor = config.sparsifyFactor;
-	cutFirstNKf = config.cutFirstNKf;
+    scaledDepthVarTH    = exp10( config.scaledDepthVarTH );
+    absDepthVarTH       = exp10( config.absDepthVarTH );
+    minNearSupport      = config.minNearSupport;
+    sparsifyFactor      = config.sparsifyFactor;
+    cutFirstNKf         = config.cutFirstNKf;
 
-	saveAllVideo = config.saveAllVideo;
+    saveAllVideo        = config.saveAllVideo;
 
 }
 
 void frameCb(lsd_slam_viewer::keyframeMsgConstPtr msg)
 {
-
-	if(msg->time > lastFrameTime) return;
+    if(msg->time > lastFrameTime)
+        return;
 
 	if(viewer != 0)
 		viewer->addFrameMsg(msg);
@@ -151,15 +151,13 @@ void rosFileLoop( int argc, char** argv )
 
 int main( int argc, char** argv )
 {
-
-
 	printf("Started QApplication thread\n");
+
 	// Read command lines arguments.
 	QApplication application(argc,argv);
 
 	// Instantiate the viewer.
 	viewer = new PointCloudViewer();
-
 
 	#if QT_VERSION < 0x040000
 		// Set the viewer as the application main widget.

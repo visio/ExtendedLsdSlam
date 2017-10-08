@@ -157,8 +157,8 @@ public:
 
 	void reset();
 
-	void addFrameMsg(lsd_slam_viewer::keyframeMsgConstPtr msg);
-	void addGraphMsg(lsd_slam_viewer::keyframeGraphMsgConstPtr msg);
+    void addFrameMsg(lsd_slam_viewer::keyframeMsgConstPtr       msg);
+    void addGraphMsg(lsd_slam_viewer::keyframeGraphMsgConstPtr  msg);
 
 
 protected :

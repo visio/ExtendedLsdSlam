@@ -66,12 +66,12 @@ public:
 
 private:
 
-	bool haveCalib;
+    bool        haveCalib;
 	Undistorter* undistorter;
 
 	ros::NodeHandle nh_;
 
-	std::string vid_channel;
+    std::string     vid_channel;
 	ros::Subscriber vid_sub;
 
 	int lastSEQ;

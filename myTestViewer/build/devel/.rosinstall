@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/sergey/MyLsdSlamProject/ROS/package_dir/lsd_slam/myTestViewer/build/devel/setup.sh

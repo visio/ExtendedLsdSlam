@@ -41,7 +41,7 @@ ROSImageStreamThread::ROSImageStreamThread()
 {
 	// subscribe
 	vid_channel = nh_.resolveName("image");
-	vid_sub          = nh_.subscribe(vid_channel,1, &ROSImageStreamThread::vidCb, this);
+    vid_sub     = nh_.subscribe(vid_channel,1, &ROSImageStreamThread::vidCb, this);
 
 
 	// wait for cam calib
@@ -50,7 +50,7 @@ ROSImageStreamThread::ROSImageStreamThread()
 	// imagebuffer
 	imageBuffer = new NotifyBuffer<TimestampedMat>(8);
 	undistorter = 0;
-	lastSEQ = 0;
+    lastSEQ     = 0;
 
 	haveCalib = false;
 }
@@ -108,7 +108,6 @@ void ROSImageStreamThread::operator()()
 
 	exit(0);
 }
-
 
 void ROSImageStreamThread::vidCb(const sensor_msgs::ImageConstPtr img)
 {
