@@ -6,9 +6,26 @@ bool isKeyframe
 # may change with keyframeGraph-updates.
 float32[7] camToWorld 
 
-# Append for check Lie group convertions
+# Append for check Lie group convertions ****
 float32[16] fullMatrix		# Full tranformation matrix
-float32 my_scale		# Using for temporary solution
+float32 scale			# Using for temporary solution
+
+int32 kfID			# Id of current key frame
+
+uint8 sourceType		# Type of ground truth source
+				# 0 - Blender
+				# 1 - Sawyer joints state
+				# 2 - IMU data
+
+# Sawyer angels *****************************
+
+float32[7] jointAngles		# Angles of Sawyer joints
+
+# Blender data ******************************
+
+float32[7] blenderData		# Poisition and orientation from external sources
+
+#********************************************
 
 # camera parameter (fx fy cx cy), width, height
 # will never change, but required for display.

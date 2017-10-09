@@ -42,13 +42,17 @@ std::string &ltrim(std::string &s) {
         s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
         return s;
 }
+
 std::string &rtrim(std::string &s) {
         s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
         return s;
 }
+
 std::string &trim(std::string &s) {
         return ltrim(rtrim(s));
 }
+
+// Make list of file name
 int getdir (std::string dir, std::vector<std::string> &files)
 {
     DIR *dp;
@@ -123,7 +127,6 @@ int getFile (std::string source, std::vector<std::string> &files)
 
 }
 
-
 using namespace lsd_slam;
 int main( int argc, char** argv )
 {
@@ -145,7 +148,7 @@ int main( int argc, char** argv )
 	// if no undistortion is required, the undistorter will just pass images through.
     std::string     calibFile;
     Undistorter*    undistorter = 0;
-	if(ros::param::get("~calib", calibFile))
+    if( ros::param::get("~calib", calibFile) )
 	{
 		 undistorter = Undistorter::getUndistorterForFile(calibFile.c_str());
 		 ros::param::del("~calib");
@@ -187,13 +190,15 @@ int main( int argc, char** argv )
     ros::param::get("~saveResults", saveRes);
 
 	// make output wrapper. just set to zero if no output is required.
-    Output3DWrapper* outputWrapper = new ROSOutput3DWrapper(w,h, source, saveRes);
+    Output3DWrapper* outputWrapper = new ROSOutput3DWrapper( w, h, source, saveRes );
 
 	// make slam system
 	SlamSystem* system = new SlamSystem(w, h, K, doSlam);
+    // Set output wrapper
 	system->setVisualization(outputWrapper);
 
-	if(getdir(source, files) >= 0)
+    // Try to open dource directory
+    if( getdir(source, files) >= 0 )
 	{
 		printf("found %d image files in folder %s!\n", (int)files.size(), source.c_str());
 	}
@@ -206,74 +211,113 @@ int main( int argc, char** argv )
 		printf("could not load file list! wrong path / file?\n");
 	}
 
-
-
 	// get HZ
 	double hz = 0;
-	if(!ros::param::get("~hz", hz))
+    if( !ros::param::get("~hz", hz) )
 		hz = 0;
+
 	ros::param::del("~hz");
 
-
-
-	cv::Mat image = cv::Mat(h,w,CV_8U);
-	int runningIDX=0;
-	float fakeTimeStamp = 0;
+    // Make matrix
+    cv::Mat image           = cv::Mat( h, w, CV_8U );
+    int     runningIDX      = 0;
+    float   fakeTimeStamp   = 0;
 
 	ros::Rate r(hz);
 
-	for(unsigned int i=0;i<files.size();i++)
-	{
-		cv::Mat imageDist = cv::imread(files[i], CV_LOAD_IMAGE_GRAYSCALE);
+    // Run reading loop
+//    int currentFileNumber   = ( files.size() - 20 );
+    int currentFileNumber   = 0;            // Number of current file in vector of names
+                                            // -1 for make 0 in first iteration
+    int fileDirection       = 1;            // File sequnce direction for make revers motion
+//    for( unsigned int i = 0; i < files.size(); i++ )
 
-		if(imageDist.rows != h_inp || imageDist.cols != w_inp)
+    std::cout << "Start image loop.."   << std::endl;
+    std::cout << "File count: "         << files.size()         << std::endl;
+    std::cout << "Current number: "     << currentFileNumber    << std::endl;
+    while( true )
+    {
+        // Read next image
+        cv::Mat imageDist = cv::imread( files[ currentFileNumber ],
+                                        CV_LOAD_IMAGE_GRAYSCALE         );
+
+        // Check image resolution
+        if( imageDist.rows != h_inp || imageDist.cols != w_inp )
 		{
-			if(imageDist.rows * imageDist.cols == 0)
-				printf("failed to load image %s! skipping.\n", files[i].c_str());
+            if( imageDist.rows * imageDist.cols == 0 )
+                printf("failed to load image %s! skipping.\n", files[currentFileNumber].c_str());
 			else
-				printf("image %s has wrong dimensions - expecting %d x %d, found %d x %d. Skipping.\n",
-						files[i].c_str(),
-						w,h,imageDist.cols, imageDist.rows);
-			continue;
+                printf( "image %s has wrong dimensions - expecting %d x %d, found %d x %d. Skipping.\n",
+                        files[currentFileNumber].c_str(),
+                        w, h, imageDist.cols, imageDist.rows );
+//			continue;
+            break;
 		}
+
+        // Check image type
 		assert(imageDist.type() == CV_8U);
 
-		undistorter->undistort(imageDist, image);
+        // Undistort image
+        undistorter->undistort( imageDist, image );
 		assert(image.type() == CV_8U);
 
-		if(runningIDX == 0)
-			system->randomInit(image.data, fakeTimeStamp, runningIDX);
+        // Calculate
+        if( runningIDX == 0 )
+            system->randomInit( image.data, fakeTimeStamp, runningIDX ) ;
 		else
-			system->trackFrame(image.data, runningIDX ,hz == 0,fakeTimeStamp);
+            system->trackFrame( image.data, runningIDX, hz == 0, fakeTimeStamp );
+
 		runningIDX++;
-		fakeTimeStamp+=0.03;
+        fakeTimeStamp += 0.03;
 
 		if(hz != 0)
 			r.sleep();
 
-		if(fullResetRequested)
-		{
 
+        // Update file number       !!!
+        currentFileNumber += fileDirection;
+        std::cout << "Updated number: "     << currentFileNumber    << std::endl;
+
+        // Check current number
+        if( currentFileNumber > (int)files.size() - 1   ||
+            currentFileNumber < 0                      )
+        {
+            // Change direction
+            fileDirection *= -1;
+            // Corect number
+            currentFileNumber += fileDirection;
+
+            std::cout << "Change image sequence.." << std::endl;
+            std::cout << "Current file number: " <<  currentFileNumber  << std::endl;
+            std::cout << "New direction value: " <<  fileDirection      << std::endl;
+        }
+
+
+        // Reset
+        if( fullResetRequested )
+		{
 			printf("FULL RESET!\n");
 			delete system;
 
-			system = new SlamSystem(w, h, K, doSlam);
-			system->setVisualization(outputWrapper);
+            system = new SlamSystem ( w, h, K, doSlam   );
+            system->setVisualization( outputWrapper     );
 
-			fullResetRequested = false;
-			runningIDX = 0;
+            fullResetRequested  = false;
+            runningIDX          = 0;
+
+            // Reset file squence
+            currentFileNumber   = 0;
+            fileDirection       = 1;
 		}
 
 		ros::spinOnce();
 
-		if(!ros::ok())
+        // if somthing wrang with ros
+        if( !ros::ok() )
 			break;
 	}
 
-
 	system->finalize();
-
-
 
 	delete system;
 	delete undistorter;
