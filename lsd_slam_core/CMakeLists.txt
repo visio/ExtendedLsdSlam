@@ -85,7 +85,10 @@ set(SOURCE_FILES
   ${PROJECT_SOURCE_DIR}/src/IOWrapper/ROS/ROSImageStreamThread.cpp
   ${PROJECT_SOURCE_DIR}/src/IOWrapper/ROS/ROSOutput3DWrapper.cpp
   ${PROJECT_SOURCE_DIR}/src/IOWrapper/OpenCV/ImageDisplay_OpenCV.cpp
-  ${PROJECT_SOURCE_DIR}/src/IOWrapper/ROS/camera_driver.cpp
+  ${PROJECT_SOURCE_DIR}/src/IOWrapper/slaminputdata.cpp
+  ${PROJECT_SOURCE_DIR}/src/IOWrapper/slaminputdatacontainer.cpp
+#  ${PROJECT_SOURCE_DIR}/src/IOWrapper/slamgroundtruth.cpp
+#  ${PROJECT_SOURCE_DIR}/src/IOWrapper/ROS/camera_driver.cpp
 )
 
 include_directories(

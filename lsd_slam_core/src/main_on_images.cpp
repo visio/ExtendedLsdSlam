@@ -30,6 +30,10 @@
 #include <dirent.h>
 #include <algorithm>
 
+//#include "IOWrapper/slamgroundtruth.h"
+//#include "IOWrapper/slaminputdata.h"
+#include "IOWrapper/slaminputdatacontainer.h"
+
 #include "IOWrapper/ROS/ROSOutput3DWrapper.h"
 #include "IOWrapper/ROS/rosReconfigure.h"
 
@@ -37,95 +41,6 @@
 #include <ros/package.h>
 
 #include "opencv2/opencv.hpp"
-
-std::string &ltrim(std::string &s) {
-        s.erase(s.begin(), std::find_if(s.begin(), s.end(), std::not1(std::ptr_fun<int, int>(std::isspace))));
-        return s;
-}
-
-std::string &rtrim(std::string &s) {
-        s.erase(std::find_if(s.rbegin(), s.rend(), std::not1(std::ptr_fun<int, int>(std::isspace))).base(), s.end());
-        return s;
-}
-
-std::string &trim(std::string &s) {
-        return ltrim(rtrim(s));
-}
-
-// Make list of file name
-int getdir (std::string dir, std::vector<std::string> &files)
-{
-    DIR *dp;
-    struct dirent *dirp;
-    if((dp  = opendir(dir.c_str())) == NULL)
-    {
-        return -1;
-    }
-
-    while ((dirp = readdir(dp)) != NULL) {
-    	std::string name = std::string(dirp->d_name);
-
-    	if(name != "." && name != "..")
-    		files.push_back(name);
-    }
-    closedir(dp);
-
-
-    std::sort(files.begin(), files.end());
-
-    if(dir.at( dir.length() - 1 ) != '/') dir = dir+"/";
-	for(unsigned int i=0;i<files.size();i++)
-	{
-		if(files[i].at(0) != '/')
-			files[i] = dir + files[i];
-	}
-
-    return files.size();
-}
-
-int getFile (std::string source, std::vector<std::string> &files)
-{
-	std::ifstream f(source.c_str());
-
-	if(f.good() && f.is_open())
-	{
-		while(!f.eof())
-		{
-			std::string l;
-			std::getline(f,l);
-
-			l = trim(l);
-
-			if(l == "" || l[0] == '#')
-				continue;
-
-			files.push_back(l);
-		}
-
-		f.close();
-
-		size_t sp = source.find_last_of('/');
-		std::string prefix;
-		if(sp == std::string::npos)
-			prefix = "";
-		else
-			prefix = source.substr(0,sp);
-
-		for(unsigned int i=0;i<files.size();i++)
-		{
-			if(files[i].at(0) != '/')
-				files[i] = prefix + "/" + files[i];
-		}
-
-		return (int)files.size();
-	}
-	else
-	{
-		f.close();
-		return -1;
-	}
-
-}
 
 using namespace lsd_slam;
 int main( int argc, char** argv )
@@ -170,46 +85,53 @@ int main( int argc, char** argv )
 	float fy = undistorter->getK().at<double>(1, 1);
 	float cx = undistorter->getK().at<double>(2, 0);
 	float cy = undistorter->getK().at<double>(2, 1);
+
 	Sophus::Matrix3f K;
 	K << fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0;
 
     // ************************* Open IMAGE Files ***********************************
-    // open image files: first try to open as file.
-    std::string source;
-    std::vector<std::string> files;
-    if(!ros::param::get("~files", source))
+    // Open image files: first try to open as file.
+    std::string frameSource;
+    if(!ros::param::get("~files", frameSource))
     {
         printf("need source files! (set using _files:=FOLDER)\n");
         exit(0);
     }
+    // Delete parameter form list
     ros::param::del("~files");
 
-    // ************************* My FLAG FOR SAVING Results *************************
+    // Create container
+    SlamInputDataContainer inputData( frameSource );
+
+    // If understorter is present
+    if( undistorter != 0 )
+    {
+        // set undestorter to container
+        SlamInputDataContainer.setUndistorter( undistorter );
+    }
+
+    // ************************* My FLAGS ******************************************
     // open image files: first try to open as file.
     bool saveRes = false;
+    // read parameters
     ros::param::get("~saveResults", saveRes);
 
+    // Gtaund truth source file name
+    std::string         sGTFileName;
+
+    // Read parameters
+    ros::param::get("~groundTruth", sGTFileName);
+
+    // Build list of graund-truth data
+
+    // ******************************************************************************
 	// make output wrapper. just set to zero if no output is required.
-    Output3DWrapper* outputWrapper = new ROSOutput3DWrapper( w, h, source, saveRes );
+    Output3DWrapper* outputWrapper = new ROSOutput3DWrapper( w, h, frameSource, saveRes );
 
 	// make slam system
-	SlamSystem* system = new SlamSystem(w, h, K, doSlam);
+    SlamSystem* system = new SlamSystem( w, h, K, doSlam );
     // Set output wrapper
 	system->setVisualization(outputWrapper);
-
-    // Try to open dource directory
-    if( getdir(source, files) >= 0 )
-	{
-		printf("found %d image files in folder %s!\n", (int)files.size(), source.c_str());
-	}
-	else if(getFile(source, files) >= 0)
-	{
-		printf("found %d image files in file %s!\n", (int)files.size(), source.c_str());
-	}
-	else
-	{
-		printf("could not load file list! wrong path / file?\n");
-	}
 
 	// get HZ
 	double hz = 0;
@@ -226,6 +148,7 @@ int main( int argc, char** argv )
 	ros::Rate r(hz);
 
     // Run reading loop
+    SlamInputData frame;
 //    int currentFileNumber   = ( files.size() - 20 );
     int currentFileNumber   = 0;            // Number of current file in vector of names
                                             // -1 for make 0 in first iteration
@@ -233,23 +156,28 @@ int main( int argc, char** argv )
 //    for( unsigned int i = 0; i < files.size(); i++ )
 
     std::cout << "Start image loop.."   << std::endl;
-    std::cout << "File count: "         << files.size()         << std::endl;
-    std::cout << "Current number: "     << currentFileNumber    << std::endl;
+    std::cout << "File count: "         << inputData.framesCount()  << std::endl;
+    std::cout << "Current number: "     << currentFileNumber        << std::endl;
     while( true )
     {
         // Read next image
-        cv::Mat imageDist = cv::imread( files[ currentFileNumber ],
-                                        CV_LOAD_IMAGE_GRAYSCALE         );
+//        cv::Mat imageDist = cv::imread( files[ currentFileNumber ],
+//                                        CV_LOAD_IMAGE_GRAYSCALE         );
+
+        // Read next frame
+        frame = inputData.getData( currentFileNumber );
 
         // Check image resolution
-        if( imageDist.rows != h_inp || imageDist.cols != w_inp )
+        if( frame.m_originalFrame.rows != h_inp ||
+            frame.m_originalFrame.cols != w_inp     )
 		{
-            if( imageDist.rows * imageDist.cols == 0 )
-                printf("failed to load image %s! skipping.\n", files[currentFileNumber].c_str());
+            if( frame.m_originalFrame.rows * frame.m_originalFrame.cols == 0 )
+                printf( "failed to load image %s! skipping.\n",
+                        inputData.getFramePath( currentFileNumber ).c_str() );
 			else
                 printf( "image %s has wrong dimensions - expecting %d x %d, found %d x %d. Skipping.\n",
-                        files[currentFileNumber].c_str(),
-                        w, h, imageDist.cols, imageDist.rows );
+                        inputData.getFramePath( currentFileNumber ).c_str(),
+                        w, h, frame.m_originalFrame.cols, frame.m_originalFrame.rows );
 //			continue;
             break;
 		}
@@ -273,7 +201,6 @@ int main( int argc, char** argv )
 		if(hz != 0)
 			r.sleep();
 
-
         // Update file number       !!!
         currentFileNumber += fileDirection;
         std::cout << "Updated number: "     << currentFileNumber    << std::endl;
@@ -291,7 +218,6 @@ int main( int argc, char** argv )
             std::cout << "Current file number: " <<  currentFileNumber  << std::endl;
             std::cout << "New direction value: " <<  fileDirection      << std::endl;
         }
-
 
         // Reset
         if( fullResetRequested )
