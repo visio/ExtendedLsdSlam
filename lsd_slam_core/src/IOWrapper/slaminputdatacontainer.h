@@ -19,13 +19,13 @@ class SlamInputDataContainer
 {
 public:
     // Constructor
-    SlamInputDataContainer( std::string source );
+    SlamInputDataContainer( std::string source, Undistorter* pUndistorter = 0 );
 
     // Return frames number
     int framesCount(){ return (int)m_vFramesPath.size(); }
 
     // Set undistorter
-    void setUndistorter( Undistorter*    undistorter );
+    void setUndistorter( Undistorter*    pUndistorter );
 
     // Set ground truth data from Blender
     int setBlenderData( std::string source );

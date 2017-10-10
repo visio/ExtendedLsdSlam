@@ -101,14 +101,7 @@ int main( int argc, char** argv )
     ros::param::del("~files");
 
     // Create container
-    SlamInputDataContainer inputData( frameSource );
-
-    // If understorter is present
-    if( undistorter != 0 )
-    {
-        // set undestorter to container
-        SlamInputDataContainer.setUndistorter( undistorter );
-    }
+    SlamInputDataContainer inputData( frameSource, undistorter );
 
     // ************************* My FLAGS ******************************************
     // open image files: first try to open as file.
@@ -118,11 +111,11 @@ int main( int argc, char** argv )
 
     // Gtaund truth source file name
     std::string         sGTFileName;
-
     // Read parameters
     ros::param::get("~groundTruth", sGTFileName);
 
     // Build list of graund-truth data
+    inputData.setBlenderData( sGTFileName );
 
     // ******************************************************************************
 	// make output wrapper. just set to zero if no output is required.
@@ -131,17 +124,15 @@ int main( int argc, char** argv )
 	// make slam system
     SlamSystem* system = new SlamSystem( w, h, K, doSlam );
     // Set output wrapper
-	system->setVisualization(outputWrapper);
+    system->setVisualization( outputWrapper );
 
 	// get HZ
 	double hz = 0;
-    if( !ros::param::get("~hz", hz) )
+    if( !ros::param::get( "~hz", hz ) )
 		hz = 0;
 
 	ros::param::del("~hz");
 
-    // Make matrix
-    cv::Mat image           = cv::Mat( h, w, CV_8U );
     int     runningIDX      = 0;
     float   fakeTimeStamp   = 0;
 
@@ -149,51 +140,32 @@ int main( int argc, char** argv )
 
     // Run reading loop
     SlamInputData frame;
-//    int currentFileNumber   = ( files.size() - 20 );
     int currentFileNumber   = 0;            // Number of current file in vector of names
-                                            // -1 for make 0 in first iteration
     int fileDirection       = 1;            // File sequnce direction for make revers motion
-//    for( unsigned int i = 0; i < files.size(); i++ )
 
     std::cout << "Start image loop.."   << std::endl;
     std::cout << "File count: "         << inputData.framesCount()  << std::endl;
     std::cout << "Current number: "     << currentFileNumber        << std::endl;
     while( true )
     {
-        // Read next image
-//        cv::Mat imageDist = cv::imread( files[ currentFileNumber ],
-//                                        CV_LOAD_IMAGE_GRAYSCALE         );
-
         // Read next frame
         frame = inputData.getData( currentFileNumber );
 
-        // Check image resolution
-        if( frame.m_originalFrame.rows != h_inp ||
-            frame.m_originalFrame.cols != w_inp     )
-		{
-            if( frame.m_originalFrame.rows * frame.m_originalFrame.cols == 0 )
-                printf( "failed to load image %s! skipping.\n",
-                        inputData.getFramePath( currentFileNumber ).c_str() );
-			else
-                printf( "image %s has wrong dimensions - expecting %d x %d, found %d x %d. Skipping.\n",
-                        inputData.getFramePath( currentFileNumber ).c_str(),
-                        w, h, frame.m_originalFrame.cols, frame.m_originalFrame.rows );
-//			continue;
+        // Check valid of frame
+        if( !frame.vaild() )
             break;
-		}
 
-        // Check image type
-		assert(imageDist.type() == CV_8U);
+//        // Show image
+//        imshow( "Display original frame",  frame.m_originalFrame  );
+//        imshow( "Display grayscale frame", frame.m_grayscaleFrame );
 
-        // Undistort image
-        undistorter->undistort( imageDist, image );
-		assert(image.type() == CV_8U);
+//        cv::waitKey(10);
 
-        // Calculate
+        // Track frame
         if( runningIDX == 0 )
-            system->randomInit( image.data, fakeTimeStamp, runningIDX ) ;
-		else
-            system->trackFrame( image.data, runningIDX, hz == 0, fakeTimeStamp );
+            system->randomInit( &frame, fakeTimeStamp, runningIDX ) ;
+        else
+            system->trackFrame( &frame, runningIDX, hz == 0, fakeTimeStamp );
 
 		runningIDX++;
         fakeTimeStamp += 0.03;
@@ -206,7 +178,7 @@ int main( int argc, char** argv )
         std::cout << "Updated number: "     << currentFileNumber    << std::endl;
 
         // Check current number
-        if( currentFileNumber > (int)files.size() - 1   ||
+        if( currentFileNumber > inputData.framesCount() - 1   ||
             currentFileNumber < 0                      )
         {
             // Change direction
@@ -214,9 +186,9 @@ int main( int argc, char** argv )
             // Corect number
             currentFileNumber += fileDirection;
 
-            std::cout << "Change image sequence.." << std::endl;
-            std::cout << "Current file number: " <<  currentFileNumber  << std::endl;
-            std::cout << "New direction value: " <<  fileDirection      << std::endl;
+            std::cout << "Change image sequence.."  << std::endl;
+            std::cout << "Current file number: "    << currentFileNumber  << std::endl;
+            std::cout << "New direction value: "    << fileDirection      << std::endl;
         }
 
         // Reset

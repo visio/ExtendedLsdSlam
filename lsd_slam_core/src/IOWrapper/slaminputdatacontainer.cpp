@@ -2,8 +2,8 @@
 
 using namespace lsd_slam;
 
-SlamInputDataContainer::SlamInputDataContainer(std::string source)  :
-    m_pUndistorter( 0 )
+SlamInputDataContainer::SlamInputDataContainer(std::string source, Undistorter *pUndistorter)  :
+    m_pUndistorter  ( pUndistorter  )
 {
     // Try to open dource directory
     if( this->getdir(source) >= 0 )
@@ -20,10 +20,10 @@ SlamInputDataContainer::SlamInputDataContainer(std::string source)  :
     }
 }
 
-void SlamInputDataContainer::setUndistorter(Undistorter *undistorter)
+void SlamInputDataContainer::setUndistorter(Undistorter *pUndistorter)
 {
     // Set undistorter pointer
-    m_pUndistorter = undistorter;
+    m_pUndistorter = pUndistorter;
 }
 
 int SlamInputDataContainer::setBlenderData(std::string source)
@@ -74,32 +74,36 @@ int SlamInputDataContainer::setBlenderData(std::string source)
 
 SlamInputData SlamInputDataContainer::getData(int idx)
 {
+    // Create data object
+    SlamInputData data;
+
     // Read next image
-    cv::Mat imageDist = cv::imread( m_vFramesPath[ idx ],
-                                    CV_LOAD_IMAGE_GRAYSCALE);
+    cv::Mat frame = cv::imread( m_vFramesPath[ idx ],
+                                CV_LOAD_IMAGE_GRAYSCALE);
 
     if( m_pUndistorter )
     {
+        int w = m_pUndistorter->getInputWidth();
+        int h = m_pUndistorter->getInputHeight();
+
         // Check image size
-        if( imageDist.rows != m_pUndistorter->getInputHeight() ||
-            imageDist.cols != m_pUndistorter->getInputWidth()     )
+        if( frame.rows != h || frame.cols != w )
         {
-            if( imageDist.rows * imageDist.cols == 0 )
+            if( frame.rows * frame.cols == 0 )
                 printf( "failed to load image %s! skipping.\n",
                         m_vFramesPath[ idx ].c_str() );
             else
                 printf( "image %s has wrong dimensions - expecting %d x %d, found %d x %d. Skipping.\n",
                         m_vFramesPath[ idx ].c_str(),
-                        w, h, frame.m_originalFrame.cols, frame.m_originalFrame.rows );
+                        w, h, frame.cols, frame.rows );
 
             // return
-            return 0;
+            return data;
         }
     }
 
-
-    // Create data object
-    SlamInputData data( imageDist );
+    // Set frame
+    data.setFrame( &frame );
 
     // Append ground truth
 

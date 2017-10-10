@@ -1,8 +1,33 @@
 #include "slaminputdata.h"
 
-SlamInputData::SlamInputData(cv::Mat frame) :
-    m_originalFrame( frame )
+SlamInputData::SlamInputData() :
+    m_bVaild        ( false )
 {
-    // Initialize output image
-    m_grayscaleFrame = cv::Mat( frame.rows, frame.cols, CV_8U );
+    // Initialize variables
+//    m_grayscaleFrame = cv::Mat( frame.rows, frame.cols, CV_8U );
+
+}
+
+SlamInputData::SlamInputData(cv::Mat frame) :
+    m_originalFrame ( frame )
+{
+    // Set original frame
+    setFrame( &frame );
+}
+
+void SlamInputData::setFrame(cv::Mat* pFrame)
+{
+    // Save original frame
+    m_originalFrame = *pFrame;
+
+    // Check chennels number
+    if ( m_originalFrame.channels() == 1 )
+        // Just save frame
+        m_grayscaleFrame = m_originalFrame;
+    else
+        // Convert to grayscale
+        cvtColor( m_originalFrame, m_grayscaleFrame, CV_RGB2GRAY);
+
+    // Set validate flag
+    m_bVaild = true;
 }

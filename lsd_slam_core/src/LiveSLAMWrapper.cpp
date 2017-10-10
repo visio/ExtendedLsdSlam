@@ -113,28 +113,28 @@ void LiveSLAMWrapper::newImageCallback(const cv::Mat& img, Timestamp imgTime)
 {
 	++ imageSeqNumber;
 
-	// Convert image to grayscale, if necessary
-	cv::Mat grayImg;
-	if (img.channels() == 1)
-		grayImg = img;
-	else
-		cvtColor(img, grayImg, CV_RGB2GRAY);
-	
+//    // Convert image to grayscale, if necessary
+//    cv::Mat grayImg;
+//    if (img.channels() == 1)
+//        grayImg = img;
+//    else
+//        cvtColor(img, grayImg, CV_RGB2GRAY);
 
-	// Assert that we work with 8 bit images
-	assert(grayImg.elemSize() == 1);
-	assert(fx != 0 || fy != 0);
+    // Assert that we work with 8 bit images
+//    assert(grayImg.elemSize() == 1);
+    assert(fx != 0 || fy != 0);
 
+    SlamInputData frame( img );
 
 	// need to initialize
 	if(!isInitialized)
 	{
-		monoOdometry->randomInit(grayImg.data, imgTime.toSec(), 1);
+        monoOdometry->randomInit( &frame, imgTime.toSec(), 1 );
 		isInitialized = true;
 	}
 	else if(isInitialized && monoOdometry != nullptr)
 	{
-		monoOdometry->trackFrame(grayImg.data,imageSeqNumber,false,imgTime.toSec());
+        monoOdometry->trackFrame( &frame, imageSeqNumber, false, imgTime.toSec() );
 	}
 }
 

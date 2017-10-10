@@ -854,13 +854,15 @@ void SlamSystem::gtDepthInit(uchar* image, float* depth, double timeStamp, int i
 }
 
 
-void SlamSystem::randomInit(uchar* image, double timeStamp, int id)
+void SlamSystem::randomInit( SlamInputData* pFrameData, double timeStamp, int id)
 {
+    // Get frame data
+    uchar* image = pFrameData->m_grayscaleFrame.data;
+
 	printf("Doing Random initialization!\n");
 
 	if(!doMapping)
 		printf("WARNING: mapping is disabled, but we just initialized... THIS WILL NOT WORK! Set doMapping to true.\n");
-
 
 	currentKeyFrameMutex.lock();
 
@@ -887,8 +889,11 @@ void SlamSystem::randomInit(uchar* image, double timeStamp, int id)
 
 }
 
-void SlamSystem::trackFrame(uchar* image, unsigned int frameID, bool blockUntilMapped, double timestamp)
+void SlamSystem::trackFrame( SlamInputData* pFrameData, unsigned int frameID, bool blockUntilMapped, double timestamp)
 {
+    // Get frame data
+    uchar* image = pFrameData->m_grayscaleFrame.data;
+
 	// Create new frame
 	std::shared_ptr<Frame> trackingNewFrame(new Frame(frameID, width, height, K, timestamp, image));
 

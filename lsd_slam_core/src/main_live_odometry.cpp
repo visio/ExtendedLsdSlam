@@ -41,7 +41,7 @@ int main( int argc, char** argv )
     // init ROS LSD-SLAM
 	ros::init(argc, argv, "LSD_SLAM");
 
-    // ************************* Open IMAGE Files ***********************************
+    // ********s********** Configure dynamic callbacks ***********************************
 	dynamic_reconfigure::Server<lsd_slam_core::LSDParamsConfig> srv(ros::NodeHandle("~"));
 	srv.setCallback(dynConfCb);
 
@@ -51,13 +51,16 @@ int main( int argc, char** argv )
     // Get current package path
 	packagePath = ros::package::getPath("lsd_slam_core")+"/";
 
-    // ************ READING CALIBRATION FILE ********************************************
+    // ***************** Run Image reader stream *****************************************
+    // Create image receiver stream
 	InputImageStream* inputStream = new ROSImageStreamThread();
 
+    // Get path to calibration file
 	std::string calibFile;
 	if(ros::param::get("~calib", calibFile))
 	{
 		ros::param::del("~calib");
+        // Set calibration info for undistorter and calibration
 		inputStream->setCalibration(calibFile);
 	}
 	else
