@@ -7,24 +7,41 @@ bool isKeyframe
 float32[7] camToWorld 
 
 # Append for check Lie group convertions ****
-float32[16] fullMatrix		# Full tranformation matrix
-float32 scale			# Using for temporary solution
+# Full tranformation matrix
+float32[16] fullMatrix
 
-int32 kfID			# Id of current key frame
+# Using for temporary solution	
+float32 scale			
 
-uint8 sourceType		# Type of ground truth source
-				# 0 - Blender
-				# 1 - Sawyer joints state
-				# 2 - IMU data
+# Id of current key frame
+int32 kfID			
+
+# Type of ground truth source
+# 0 - Blender
+# 1 - Sawyer joints state
+# 2 - IMU data
+
+uint8 sourceType		
 
 # Sawyer angels *****************************
-
-float32[7] jointAngles		# Angles of Sawyer joints
+# Angles of Sawyer joints
+float32[7] jointAngles		
 
 # Blender data ******************************
+# Poisition and orientation from external sources
+float32[7] blenderData		
 
-float32[7] blenderData		# Poisition and orientation from external sources
+# External position data ******************************
+#  Ground truth tranformation matrix
+float32[16] gtMatrix	
 
+# Ground truth  Translation matrix
+float32[3] gtTranslation
+# Ground truth Quaternion
+float32[4] gtQuaternion	
+
+# Ground truth scale
+float32 gtScale		
 #********************************************
 
 # camera parameter (fx fy cx cy), width, height
@@ -33,9 +50,9 @@ float32 fx
 float32 fy
 float32 cx
 float32 cy
+
 uint32 height
 uint32 width
-
 
 # data as InputPointDense (float idepth, float idepth_var, uchar color[4]), width x height
 # may be empty, in that case no associated pointcloud is ever shown.

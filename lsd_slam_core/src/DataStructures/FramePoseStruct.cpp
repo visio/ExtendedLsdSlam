@@ -32,15 +32,16 @@ int privateFramePoseStructAllocCount = 0;
 
 FramePoseStruct::FramePoseStruct(Frame* frame)
 {
-	cacheValidFor = -1;
-	isOptimized = false;
-	thisToParent_raw = camToWorld = camToWorld_new = Sim3();
-	this->frame = frame;
-	frameID = frame->id();
-	trackingParent = 0;
+    cacheValidFor   = -1;
+    isOptimized     = false;
+
+    thisToParent_raw    = camToWorld = camToWorld_new = Sim3();
+    this->frame         = frame;
+    frameID             = frame->id();
+    trackingParent      = 0;
 	isRegisteredToGraph = false;
-	hasUnmergedPose = false;
-	isInGraph = false;
+    hasUnmergedPose     = false;
+    isInGraph           = false;
 
 	this->graphVertex = nullptr;
 

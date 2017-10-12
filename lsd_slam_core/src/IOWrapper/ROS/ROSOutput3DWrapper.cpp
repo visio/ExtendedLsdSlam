@@ -163,17 +163,30 @@ void ROSOutput3DWrapper::publishKeyframe(Frame* keyFrame)
     fMsg.cx = keyFrame->cx(publishLvl);
     fMsg.cy = keyFrame->cy(publishLvl);
 
-    // Save "my_scale" ***********************************
+    //********************** Additional *******************
+    //  Save "my_scale"
     fMsg.scale = keyFrame->getScaledCamToWorld().scale();
 
     // Get transformation matrix
     Sophus::Matrix4f m = keyFrame->getScaledCamToWorld().matrix().cast<float>();
+
     // Save "fullMatrix"
     memcpy( fMsg.fullMatrix.data(),
             m.data(),
             sizeof(float) * 16 );
 
-    // Save "my_scale" ***********************************
+    // Get ground truth data from frame
+    Sim3 GTruth = keyFrame->getGroundTruth();
+
+    // Save full ground truth
+
+    // Save translation
+
+    // Save quaternion
+
+    // Save scale
+
+    //***************************************************
 
     // Save frame size to message
     fMsg.width  = wide;
@@ -203,6 +216,25 @@ void ROSOutput3DWrapper::publishKeyframe(Frame* keyFrame)
     keyframe_publisher.publish(fMsg);
 
     //********************* My part ***************************
+
+    // Debug info
+    std::cout << "ROSOutput3DWrapper::publishKeyframe: " << std::endl;
+
+    // Get ground truth data from frame
+    Sim3 GTruth = keyFrame->getGroundTruth();
+
+    std::cout << std::endl << "Translation:" << std::endl;
+    std::cout << GTruth.translation()[0] << std::endl;
+    std::cout << GTruth.translation()[1] << std::endl;
+    std::cout << GTruth.translation()[2] << std::endl;
+
+    std::cout << std::endl << "Quaternion:" << std::endl;
+    std::cout << GTruth.quaternion().w() << std::endl;
+    std::cout << GTruth.quaternion().x() << std::endl;
+    std::cout << GTruth.quaternion().y() << std::endl;
+    std::cout << GTruth.quaternion().z() << std::endl;
+
+
 //    if( m_bSaveOutputs )
 //    {
 //        // Make new file name

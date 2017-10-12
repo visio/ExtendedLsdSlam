@@ -115,7 +115,10 @@ int main( int argc, char** argv )
     ros::param::get("~groundTruth", sGTFileName);
 
     // Build list of graund-truth data
-    inputData.setBlenderData( sGTFileName );
+    int gtReaded = inputData.setBlenderData( sGTFileName );
+
+    // Debug info
+    std::cout << "Graund truth readed from blender output: " << gtReaded << std::endl;
 
     // ******************************************************************************
 	// make output wrapper. just set to zero if no output is required.
@@ -148,12 +151,18 @@ int main( int argc, char** argv )
     std::cout << "Current number: "     << currentFileNumber        << std::endl;
     while( true )
     {
+        // Debug info
+        std::cout << "Next loop iteration..." << std::endl;
+
         // Read next frame
         frame = inputData.getData( currentFileNumber );
 
         // Check valid of frame
         if( !frame.vaild() )
             break;
+
+        // Debug info
+        std::cout << "Input data valid..." << std::endl;
 
 //        // Show image
 //        imshow( "Display original frame",  frame.m_originalFrame  );

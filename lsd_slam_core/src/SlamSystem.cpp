@@ -866,7 +866,8 @@ void SlamSystem::randomInit( SlamInputData* pFrameData, double timeStamp, int id
 
 	currentKeyFrameMutex.lock();
 
-	currentKeyFrame.reset(new Frame(id, width, height, K, timeStamp, image));
+    currentKeyFrame.reset( new Frame(id, width, height, K, timeStamp, image) );
+
 	map->initializeRandomly(currentKeyFrame.get());
 	keyFrameGraph->addFrame(currentKeyFrame.get());
 
@@ -884,7 +885,6 @@ void SlamSystem::randomInit( SlamInputData* pFrameData, double timeStamp, int id
 	if (displayDepthMap || depthMapScreenshotFlag)
 		debugDisplayDepthMap();
 
-
 	printf("Done Random initialization!\n");
 
 }
@@ -892,10 +892,18 @@ void SlamSystem::randomInit( SlamInputData* pFrameData, double timeStamp, int id
 void SlamSystem::trackFrame( SlamInputData* pFrameData, unsigned int frameID, bool blockUntilMapped, double timestamp)
 {
     // Get frame data
-    uchar* image = pFrameData->m_grayscaleFrame.data;
+    uchar*  image       = pFrameData->m_grayscaleFrame.data;
+    Sim3    GTransform  = pFrameData->m_graundTruth;
+//    Sim3*   pGTransform  = 0;
 
 	// Create new frame
-	std::shared_ptr<Frame> trackingNewFrame(new Frame(frameID, width, height, K, timestamp, image));
+    std::shared_ptr<Frame> trackingNewFrame(new Frame( frameID,
+                                                       width,
+                                                       height,
+                                                       K,
+                                                       timestamp,
+                                                       image,
+                                                       &GTransform ));
 
 	if(!trackingIsGood)
 	{
@@ -944,10 +952,10 @@ void SlamSystem::trackFrame( SlamInputData* pFrameData, unsigned int frameID, bo
 	msTrackFrame = 0.9*msTrackFrame + 0.1*((tv_end.tv_sec-tv_start.tv_sec)*1000.0f + (tv_end.tv_usec-tv_start.tv_usec)/1000.0f);
 	nTrackFrame++;
 
-	tracking_lastResidual = tracker->lastResidual;
-	tracking_lastUsage = tracker->pointUsage;
-	tracking_lastGoodPerBad = tracker->lastGoodCount / (tracker->lastGoodCount + tracker->lastBadCount);
-	tracking_lastGoodPerTotal = tracker->lastGoodCount / (trackingNewFrame->width(SE3TRACKING_MIN_LEVEL)*trackingNewFrame->height(SE3TRACKING_MIN_LEVEL));
+    tracking_lastResidual       = tracker->lastResidual;
+    tracking_lastUsage          = tracker->pointUsage;
+    tracking_lastGoodPerBad     = tracker->lastGoodCount / (tracker->lastGoodCount + tracker->lastBadCount);
+    tracking_lastGoodPerTotal   = tracker->lastGoodCount / (trackingNewFrame->width(SE3TRACKING_MIN_LEVEL)*trackingNewFrame->height(SE3TRACKING_MIN_LEVEL));
 
 
 	if(manualTrackingLossIndicated || tracker->diverged || (keyFrameGraph->keyframesAll.size() > INITIALIZATION_PHASE_COUNT && !tracker->trackingWasGood))

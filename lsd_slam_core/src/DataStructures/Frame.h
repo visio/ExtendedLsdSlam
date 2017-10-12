@@ -45,9 +45,9 @@ public:
 	friend class FrameMemory;
 
 
-	Frame(int id, int width, int height, const Eigen::Matrix3f& K, double timestamp, const unsigned char* image);
+    Frame(int id, int width, int height, const Eigen::Matrix3f& K, double timestamp, const unsigned char* image, Sim3* pGTransform = 0 );
 
-	Frame(int id, int width, int height, const Eigen::Matrix3f& K, double timestamp, const float* image);
+    Frame(int id, int width, int height, const Eigen::Matrix3f& K, double timestamp, const float* image);
 
 	~Frame();
 	
@@ -175,8 +175,6 @@ public:
 	Eigen::Vector2f* permaRef_colorAndVarData;	// (I, Var)
 	int permaRefNumPts;
 
-
-
 	// Temporary values
 	int referenceID;
 	int referenceLevel;
@@ -204,6 +202,9 @@ public:
 	float edgeErrorSum, edgesNum;
 	int numMappablePixels;
 	float meanInformation;
+
+
+    Sim3 getGroundTruth(){ return data.GTransform; }
 
 private:
 
@@ -264,15 +265,20 @@ private:
 
 		// data needed for re-activating the frame. theoretically, this is all data the
 		// frame contains.
-		unsigned char* validity_reAct;
-		float* idepth_reAct;
-		float* idepthVar_reAct;
+        unsigned char*  validity_reAct;
+        float*          idepth_reAct;
+        float*          idepthVar_reAct;
+
 		bool reActivationDataValid;
 
 
 		// data from initial tracking, indicating which pixels in the reference frame ware good or not.
 		// deleted as soon as frame is used for mapping.
 		bool* refPixelWasGood;
+
+        // Granud truth matrix
+//        float GTMatrix[4][4];
+        Sim3 GTransform;
 	};
 	Data data;
 

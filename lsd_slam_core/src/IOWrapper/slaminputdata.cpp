@@ -9,6 +9,7 @@ SlamInputData::SlamInputData() :
 }
 
 SlamInputData::SlamInputData(cv::Mat frame) :
+    m_bVaild        ( false ),
     m_originalFrame ( frame )
 {
     // Set original frame
@@ -26,8 +27,19 @@ void SlamInputData::setFrame(cv::Mat* pFrame)
         m_grayscaleFrame = m_originalFrame;
     else
         // Convert to grayscale
-        cvtColor( m_originalFrame, m_grayscaleFrame, CV_RGB2GRAY);
+        cvtColor( m_originalFrame,
+                  m_grayscaleFrame,
+                  CV_RGB2GRAY           );
 
     // Set validate flag
     m_bVaild = true;
+}
+
+void SlamInputData::setGroundTruth(Sim3 *pTransform)
+{
+    // Debug info
+    std::cout << "SlamInputData::setGroundTruth: Started..." << std::endl;
+
+    // Save transform for graud truth
+    m_graundTruth = *pTransform;
 }

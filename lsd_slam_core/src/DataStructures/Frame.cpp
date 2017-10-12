@@ -29,10 +29,9 @@ namespace lsd_slam
 int privateFrameAllocCount = 0;
 
 
-
-
-
-Frame::Frame(int id, int width, int height, const Eigen::Matrix3f& K, double timestamp, const unsigned char* image)
+Frame::Frame(int id, int width, int height, const Eigen::Matrix3f& K, double timestamp,
+             const unsigned char*   image,
+              Sim3*                 pGTransform  )
 {
 	initialize(id, width, height, K, timestamp);
 	
@@ -45,20 +44,31 @@ Frame::Frame(int id, int width, int height, const Eigen::Matrix3f& K, double tim
 		image++;
 	}
 
+
+    // If pointer not empty
+    if(  pGTransform != 0 )
+        // Copy transformation matrix
+//        memcpy( data.GTMatrix[0], pGTMatrix, 16 * sizeof(float) );
+         data.GTransform = *pGTransform;
+
 	data.imageValid[0] = true;
 
 	privateFrameAllocCount++;
 
-	if(enablePrintDebugInfo && printMemoryDebugInfo)
+    if( enablePrintDebugInfo && printMemoryDebugInfo )
 		printf("ALLOCATED frame %d, now there are %d\n", this->id(), privateFrameAllocCount);
 }
 
 Frame::Frame(int id, int width, int height, const Eigen::Matrix3f& K, double timestamp, const float* image)
 {
-	initialize(id, width, height, K, timestamp);
+    initialize( id, width, height, K, timestamp);
 	
-	data.image[0] = FrameMemory::getInstance().getFloatBuffer(data.width[0]*data.height[0]);
-	memcpy(data.image[0], image, data.width[0]*data.height[0] * sizeof(float));
+    data.image[0] = FrameMemory::getInstance().getFloatBuffer( data.width[0] * data.height[0] );
+
+    memcpy( data.image[0],
+                 image,
+            data.width[0] * data.height[0] * sizeof(float) );
+
 	data.imageValid[0] = true;
 
 	privateFrameAllocCount++;
@@ -82,10 +92,10 @@ Frame::~Frame()
 
 	for (int level = 0; level < PYRAMID_LEVELS; ++ level)
 	{
-		FrameMemory::getInstance().returnBuffer(data.image[level]);
+        FrameMemory::getInstance().returnBuffer(data.image    [level]);
 		FrameMemory::getInstance().returnBuffer(reinterpret_cast<float*>(data.gradients[level]));
 		FrameMemory::getInstance().returnBuffer(data.maxGradients[level]);
-		FrameMemory::getInstance().returnBuffer(data.idepth[level]);
+        FrameMemory::getInstance().returnBuffer(data.idepth   [level]);
 		FrameMemory::getInstance().returnBuffer(data.idepthVar[level]);
 	}
 
