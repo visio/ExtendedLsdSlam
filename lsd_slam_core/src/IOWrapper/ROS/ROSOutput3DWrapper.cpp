@@ -147,11 +147,12 @@ void ROSOutput3DWrapper::publishKeyframe(Frame* keyFrame)
     fMsg.time       = keyFrame->timestamp();        // Save timestamp
     fMsg.isKeyframe = true;                         // Is it keyframe?
 
+    // Save keyframe id
     fMsg.kfID   = keyFrame->id();
 
     // Save frame size
-    int wide    = keyFrame->width(publishLvl);
-    int h       = keyFrame->height(publishLvl);
+    int width   = keyFrame->width (publishLvl);
+    int height  = keyFrame->height(publishLvl);
 
     // Save camera parameters
     memcpy( fMsg.camToWorld.data(),
@@ -163,7 +164,8 @@ void ROSOutput3DWrapper::publishKeyframe(Frame* keyFrame)
     fMsg.cx = keyFrame->cx(publishLvl);
     fMsg.cy = keyFrame->cy(publishLvl);
 
-    // Save "my_scale" ***********************************
+    //****************** Additional estimated ********************
+    //  Save "my_scale"
     fMsg.scale = keyFrame->getScaledCamToWorld().scale();
 
     // Get transformation matrix
@@ -173,14 +175,41 @@ void ROSOutput3DWrapper::publishKeyframe(Frame* keyFrame)
             m.data(),
             sizeof(float) * 16 );
 
-    // Save "my_scale" ***********************************
+    //************** Additional Ground Truth ********************
+    // Get ground truth data from frame
+    Sim3 GTruth = keyFrame->getGroundTruth();
+
+    // Save full ground truth
+    m = GTruth.matrix().cast<float>();
+    // Save "fullMatrix"
+    memcpy( fMsg.gtMatrix.data(), m.data(), sizeof(float) * 16 );
+
+    // Save Blender parameters
+    memcpy( fMsg.blenderData.data(),
+            GTruth.cast<float>().data(),
+            sizeof(float) * 7 );
+
+    // Save translation
+    memcpy( fMsg.gtTranslation.data(),
+            fMsg.blenderData.data(),
+            sizeof(float) * 3           );
+
+    // Save quaternion
+    memcpy( fMsg.gtQuaternion.data(),
+            fMsg.blenderData.data() + 3,
+            sizeof(float) * 4           );
+
+    // Save scale
+    fMsg.scale = keyFrame->getScaledCamToWorld().scale();
+
+    //***************************************************
 
     // Save frame size to message
-    fMsg.width  = wide;
-	fMsg.height = h;
+    fMsg.width  = width;
+    fMsg.height = height;
 
     // Make new buffer for point cloud
-    fMsg.pointcloud.resize(wide*h*sizeof(InputPointDense));
+    fMsg.pointcloud.resize(width*height*sizeof(InputPointDense));
 
     // receive pointer
 	InputPointDense* pc = (InputPointDense*)fMsg.pointcloud.data();
@@ -189,7 +218,7 @@ void ROSOutput3DWrapper::publishKeyframe(Frame* keyFrame)
     const float* idepthVar  = keyFrame->idepthVar  (publishLvl);
     const float* color      = keyFrame->image      (publishLvl);
 
-    for(int idx=0;idx < wide*h; idx++)
+    for(int idx=0;idx < width*height; idx++)
 	{
         pc[idx].idepth      = idepth    [idx];
         pc[idx].idepth_var  = idepthVar [idx];
@@ -200,9 +229,29 @@ void ROSOutput3DWrapper::publishKeyframe(Frame* keyFrame)
 		pc[idx].color[3] = color[idx];
 	}
 
+    // Bublish builded frame
     keyframe_publisher.publish(fMsg);
 
     //********************* My part ***************************
+
+//    // Debug info
+//    std::cout << "ROSOutput3DWrapper::publishKeyframe: " << std::endl;
+
+//    // Get ground truth data from frame
+//    Sim3 GTruth = keyFrame->getGroundTruth();
+
+//    std::cout << std::endl << "Translation:" << std::endl;
+//    std::cout << GTruth.translation()[0] << std::endl;
+//    std::cout << GTruth.translation()[1] << std::endl;
+//    std::cout << GTruth.translation()[2] << std::endl;
+
+//    std::cout << std::endl << "Quaternion:" << std::endl;
+//    std::cout << GTruth.quaternion().w() << std::endl;
+//    std::cout << GTruth.quaternion().x() << std::endl;
+//    std::cout << GTruth.quaternion().y() << std::endl;
+//    std::cout << GTruth.quaternion().z() << std::endl;
+
+
 //    if( m_bSaveOutputs )
 //    {
 //        // Make new file name
@@ -319,7 +368,35 @@ void ROSOutput3DWrapper::publishTrackedFrame(Frame* trackedFrame, Frame* keyFram
             m.data(),
             sizeof(float) * 16 );
 
-    // Save "my_scale" ***********************************
+
+    //************** Additional Ground Truth ********************
+    // Get ground truth data from frame
+    Sim3 GTruth = keyFrame->getGroundTruth();
+
+    // Save full ground truth
+    m = GTruth.matrix().cast<float>();
+    // Save "fullMatrix"
+    memcpy( fMsg.gtMatrix.data(), m.data(), sizeof(float) * 16 );
+
+    // Save Blender parameters
+    memcpy( fMsg.blenderData.data(),
+            GTruth.cast<float>().data(),
+            sizeof(float) * 7 );
+
+    // Save translation
+    memcpy( fMsg.gtTranslation.data(),
+            fMsg.blenderData.data(),
+            sizeof(float) * 3           );
+
+    // Save quaternion
+    memcpy( fMsg.gtQuaternion.data(),
+            fMsg.blenderData.data() + 3,
+            sizeof(float) * 4           );
+
+    // Save scale
+    fMsg.scale = keyFrame->getScaledCamToWorld().scale();
+
+    //***************************************************
 
 	liveframe_publisher.publish(fMsg);
 

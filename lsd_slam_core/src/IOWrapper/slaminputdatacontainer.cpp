@@ -1,5 +1,9 @@
 #include "slaminputdatacontainer.h"
 
+//#include <Eigen/Geometry>
+//#include "sophus/sim3.hpp"
+//#include "sophus/se3.hpp"
+
 using namespace lsd_slam;
 
 SlamInputDataContainer::SlamInputDataContainer(std::string source, Undistorter *pUndistorter)  :
@@ -34,25 +38,69 @@ int SlamInputDataContainer::setBlenderData(std::string source)
     // if it was file and it has open well
     if(f.good() && f.is_open())
     {
-        Sim3    tform;
+        std::string sLine;              // Line from sile
+//        std::string sTemp;            // String for temp digits
+
+        std::string::size_type sz;      // alias of size_t
+
+//        Sim3        tform;
+        double tempBuff[4];
+
+        // Debug info
+//        std::cout << "SlamInputDataContainer::setBlenderData:Start read lines: " << std::endl;
 
         // till and off file
-        while(!f.eof())
+        while( !f.eof() )
         {
-            std::string l;
             // Get next line
-            std::getline(f,l);
+            std::getline( f, sLine );
+            // Debug info
+//            std::cout << std::endl << sLine << std::endl;
 
             // trim string both side
-            l = trim(l);
-
+            sLine = trim( sLine );
             // if line empty or commented
-            if(l == "" || l[0] == '#')
+            if(sLine == "" || sLine[0] == '#')
                 continue;
 
-            // Convert string to numbers
+            Sim3::Point _translation;
+            // Initialize transformation
+            _translation[0] = std::stod ( sLine, &sz );
+            sLine = sLine.substr(sz);
+            _translation[1] = std::stod ( sLine, &sz);
+            sLine = sLine.substr(sz);
+            _translation[2] = std::stod ( sLine, &sz);
+            sLine = sLine.substr(sz);
+
+            // Read Quaternion
+            tempBuff[0] = std::stod ( sLine, &sz );
+            sLine = sLine.substr(sz);
+            tempBuff[1] = std::stod ( sLine, &sz );
+            sLine = sLine.substr(sz);
+            tempBuff[2] = std::stod ( sLine, &sz );
+            sLine = sLine.substr(sz);
+            tempBuff[3] = std::stod ( sLine, &sz );
+            sLine = sLine.substr(sz);
+
+//            Eigen::Quaternion<Sim3::Scalar>   _rotation( tempBuff );
+            Eigen::Quaternion<Sim3::Scalar>   _rotation( tempBuff[0],
+                                                         tempBuff[1],
+                                                         tempBuff[2],
+                                                         tempBuff[3] );
 
             // Set in Sim3
+            Sim3 tform( _rotation, _translation );
+
+//            std::cout << std::endl << "Translation:" << std::endl;
+//            std::cout << tform.translation()[0] << std::endl;
+//            std::cout << tform.translation()[1] << std::endl;
+//            std::cout << tform.translation()[2] << std::endl;
+
+//            std::cout << std::endl << "Quaternion:" << std::endl;
+//            std::cout << tform.quaternion().w() << std::endl;
+//            std::cout << tform.quaternion().x() << std::endl;
+//            std::cout << tform.quaternion().y() << std::endl;
+//            std::cout << tform.quaternion().z() << std::endl;
 
             // Append path to path list
             m_vGroundTruth.push_back( tform );
@@ -66,6 +114,9 @@ int SlamInputDataContainer::setBlenderData(std::string source)
     }
     else
     {
+        // Debug info
+        std::cout << "SlamInputDataContainer::setBlenderData: Can not open file: "<< source << std::endl;
+
         f.close();
         return -1;
     }
@@ -97,6 +148,8 @@ SlamInputData SlamInputDataContainer::getData(int idx)
                         m_vFramesPath[ idx ].c_str(),
                         w, h, frame.cols, frame.rows );
 
+            // Debug info
+            std::cout << "SlamInputDataContainer::getData: Invalid frame !!! " << std::endl;
             // return
             return data;
         }
@@ -106,6 +159,13 @@ SlamInputData SlamInputDataContainer::getData(int idx)
     data.setFrame( &frame );
 
     // Append ground truth
+    if( idx < m_vGroundTruth.size() )
+    {
+        // Debug info
+        std::cout << "SlamInputDataContainer::getData: Append ground truth..." << std::endl;
+        // Append information to input data
+        data.setGroundTruth( &m_vGroundTruth[idx] );
+    }
 
     // return data
     return data;
