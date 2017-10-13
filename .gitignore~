@@ -34,3 +34,5 @@ cmake_install.cmake
 *.zip
 
 lsd_slam_core/slam_KFs_output/
+
+*~

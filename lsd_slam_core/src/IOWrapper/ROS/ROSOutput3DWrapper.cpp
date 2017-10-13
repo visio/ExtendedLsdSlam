@@ -170,6 +170,7 @@ void ROSOutput3DWrapper::publishKeyframe(Frame* keyFrame)
 
     // Get transformation matrix
     Sophus::Matrix4f m = keyFrame->getScaledCamToWorld().matrix().cast<float>();
+
     // Save "fullMatrix"
     memcpy( fMsg.fullMatrix.data(),
             m.data(),

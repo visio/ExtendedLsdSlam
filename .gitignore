@@ -36,3 +36,5 @@ cmake_install.cmake
 lsd_slam_core/slam_KFs_output/
 
 *~
+
+*.orig
