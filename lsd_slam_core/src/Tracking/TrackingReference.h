@@ -53,23 +53,28 @@ public:
 	/** Creates an empty TrackingReference with optional preallocation per level. */
 	TrackingReference();
 	~TrackingReference();
+
 	void importFrame(Frame* source);
 
 	Frame* keyframe;
+
 	boost::shared_lock<boost::shared_mutex> keyframeLock;
 	int frameID;
 
 	void makePointCloud(int level);
 	void clearAll();
 	void invalidate();
-	Eigen::Vector3f* posData[PYRAMID_LEVELS];	// (x,y,z)
-	Eigen::Vector2f* gradData[PYRAMID_LEVELS];	// (dx, dy)
+
+    Eigen::Vector3f* posData        [PYRAMID_LEVELS];	// (x,y,z)
+    Eigen::Vector2f* gradData       [PYRAMID_LEVELS];	// (dx, dy)
 	Eigen::Vector2f* colorAndVarData[PYRAMID_LEVELS];	// (I, Var)
-	int* pointPosInXYGrid[PYRAMID_LEVELS];	// x + y*width
-	int numData[PYRAMID_LEVELS];
+
+    int*    pointPosInXYGrid[PYRAMID_LEVELS];           // x + y*width
+    int     numData         [PYRAMID_LEVELS];
 
 private:
 	int wh_allocated;
+
 	boost::mutex accessMutex;
 	void releaseAll();
 };

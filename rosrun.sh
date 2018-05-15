@@ -14,7 +14,9 @@
 # ********* libuvc_CAM ******************
 # Run camera
 # rosrun libuvc_camera camera_node _frame_rate:=60.0  _width:=640 _height:=480 _video_mode:="rgb"
-# rosrun libuvc_camera camera_node _vendor= _product= _index:=2 _frame_rate=60.0  _width=640.0 _height=480.0 _video_mode="rgb"
+
+# rosrun libuvc_camera camera_node _vendor:=1415 _product=2000 _index:=1 _frame_rate=60.0  _width=640.0 _height=480.0 _video_mode="rgb"
+
 # rosrun libuvc_camera camera_node _vendor="0x1415" _product="0x2000" _frame_rate=60.0  _width=640.0 _height=480.0 _video_mode="rgb"
 
 # ********* uvc_CAMera ******************

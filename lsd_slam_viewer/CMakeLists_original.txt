@@ -21,51 +21,9 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
 find_package(OpenGL REQUIRED)
 set(QT_USE_QTOPENGL TRUE)
 set(QT_USE_QTXML TRUE)
+find_package(QGLViewer REQUIRED)
 
-FIND_PACKAGE(Qt4 COMPONENTS QtCore QtXml QtOpenGL QtGui)
-
-#find_package(QGLViewer 2.6 REQUIRED)
-FIND_PATH(QGLVIEWER_INCLUDE_DIR qglviewer.h
-#    /usr/include/QGLViewer
-#    /opt/local/include/QGLViewer
-    /usr/local/include/QGLViewer
-#    /sw/include/QGLViewer
-#    ENV QGLVIEWERROOT
-  )
-
-find_library(QGLVIEWER_LIBRARY_RELEASE
-  NAMES QGLViewer-qt4 #qglviewer QGLViewer QGLViewer2
-  PATHS /usr/lib
-        /usr/local/lib
-#        /opt/local/lib
-#        /sw/lib
-#        ENV QGLVIEWERROOT
-#        ENV LD_LIBRARY_PATH
-#        ENV LIBRARY_PATH
-#  PATH_SUFFIXES QGLViewer QGLViewer/release
-)
-#find_library(QGLVIEWER_LIBRARY_DEBUG
-#  NAMES dqglviewer dQGLViewer dQGLViewer2 QGLViewerd2
-#  PATHS /usr/lib
-#        /usr/local/lib
-#        /opt/local/lib
-#        /sw/lib
-#        ENV QGLVIEWERROOT
-#        ENV LD_LIBRARY_PATH
-#        ENV LIBRARY_PATH
-#  PATH_SUFFIXES QGLViewer QGLViewer/release
-#)
-
-if(QGLVIEWER_LIBRARY_RELEASE)
-  if(QGLVIEWER_LIBRARY_DEBUG)
-    set(QGLVIEWER_LIBRARY optimized ${QGLVIEWER_LIBRARY_RELEASE} debug ${QGLVIEWER_LIBRARY_DEBUG})
-  else()
-    set(QGLVIEWER_LIBRARY ${QGLVIEWER_LIBRARY_RELEASE})
-  endif()
-endif()
-
-#find_package(Eigen3 REQUIRED)
-
+find_package(Eigen3 REQUIRED)
 
 include_directories(${QT_INCLUDES} ${EIGEN3_INCLUDE_DIR} ${QGLVIEWER_INCLUDE_DIR})
 
@@ -74,8 +32,12 @@ include(${dynamic_reconfigure_PACKAGE_PATH}/cmake/cfgbuild.cmake)
 gencfg()
 
 
+
+
+
 # Messages & Services
 rosbuild_genmsg()
+
 
 # SSE flags
 rosbuild_check_for_sse()
@@ -104,9 +66,7 @@ include_directories(
 
 rosbuild_add_executable(viewer src/main_viewer.cpp ${SOURCE_FILES} ${HEADER_FILES})
 
-FIND_PACKAGE(Qt4 COMPONENTS QtCore QtXml QtOpenGL QtGui)
-
-target_link_libraries(viewer ${QGLViewer_LIBRARIES} ${QT_LIBRARIES} ${QGLVIEWER_LIBRARY} GL glut GLU QtOpenGL QtGui)
+target_link_libraries(viewer ${QGLViewer_LIBRARIES} ${QT_LIBRARIES} ${QGLVIEWER_LIBRARY} GL glut GLU)
 
 rosbuild_link_boost(viewer thread)
 

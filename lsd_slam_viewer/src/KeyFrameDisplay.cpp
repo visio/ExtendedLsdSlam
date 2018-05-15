@@ -34,10 +34,10 @@
 
 KeyFrameDisplay::KeyFrameDisplay()
 {
-	originalInput = 0;
-	id = 0;
+    originalInput       = 0;
+    id                  = 0;
 	vertexBufferIdValid = false;
-	glBuffersValid = false;
+    glBuffersValid      = false;
 
 
 	camToWorld = Sophus::Sim3f();
@@ -77,10 +77,10 @@ void KeyFrameDisplay::setFrom(lsd_slam_viewer::keyframeMsgConstPtr msg)
 	cxi = -cx / fx;
 	cyi = -cy / fy;
 
-	width = msg->width;
-	height = msg->height;
-	id = msg->id;
-	time = msg->time;
+    width   = msg->width;
+    height  = msg->height;
+    id      = msg->id;
+    time    = msg->time;
 
 	if(originalInput != 0)
 		delete[] originalInput;
@@ -96,8 +96,10 @@ void KeyFrameDisplay::setFrom(lsd_slam_viewer::keyframeMsgConstPtr msg)
 	}
 	else
 	{
-		originalInput = new InputPointDense[width*height];
-		memcpy(originalInput, msg->pointcloud.data(), width*height*sizeof(InputPointDense));
+        originalInput = new InputPointDense[width * height];
+        memcpy( originalInput,
+                msg->pointcloud.data(),
+                width*height*sizeof(InputPointDense)    );
 	}
 
 	glBuffersValid = false;

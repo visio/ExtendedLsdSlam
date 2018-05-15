@@ -39,9 +39,9 @@
 //	typedef Sophus::Vector6d Vector6;
 //	typedef Sophus::Vector7d Vector7;
 //	typedef Sophus::Quaterniond Quaternion;
-	typedef Sophus::SE3d SE3;
-	typedef Sophus::Sim3d Sim3;
-	typedef Sophus::SO3d SO3;
+    typedef Sophus::SE3d    SE3;
+    typedef Sophus::Sim3d   Sim3;
+    typedef Sophus::SO3d    SO3;
 	#define toSophus(x) ((x).cast<double>())
 	#define sophusType double
 #endif
