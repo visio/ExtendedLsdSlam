@@ -66,7 +66,7 @@ Frame::Frame(int id, int width, int height, const Eigen::Matrix3f& K, double tim
     data.image[0] = FrameMemory::getInstance().getFloatBuffer( data.width[0] * data.height[0] );
 
     memcpy( data.image[0],
-                 image,
+            image,
             data.width[0] * data.height[0] * sizeof(float) );
 
 	data.imageValid[0] = true;
@@ -423,6 +423,9 @@ void Frame::initialize(int id, int width, int height, const Eigen::Matrix3f& K, 
 	data.cyInv[0] = data.KInv[0](1,2);
 	
 	data.timestamp = timestamp;
+
+    // Get curent time
+    data.startTrackingTime = std::chrono::high_resolution_clock::now();
 
 	data.hasIDepthBeenSet = false;
 	depthHasBeenUpdatedFlag = false;

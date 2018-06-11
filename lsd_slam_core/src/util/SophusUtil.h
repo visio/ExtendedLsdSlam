@@ -20,7 +20,7 @@
 
 #pragma once
 
-#include "sophus/sim3.hpp"
+#include "/home/deep/rosbuild_ws/package_dir/lsd_slam/lsd_slam_viewer/thirdparty/Sophus/sophus/sim3.hpp"
 #include "sophus/se3.hpp"
 
 

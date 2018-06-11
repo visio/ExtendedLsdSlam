@@ -85,12 +85,13 @@ void LiveSLAMWrapper::Loop()
 {
 	while (true) {
 		boost::unique_lock<boost::recursive_mutex> waitLock(imageStream->getBuffer()->getMutex());
-		while (!fullResetRequested && !(imageStream->getBuffer()->size() > 0)) {
+
+        while (!fullResetRequested && !(imageStream->getBuffer()->size() > 0))
+        {
 			notifyCondition.wait(waitLock);
 		}
 		waitLock.unlock();
-		
-		
+				
 		if(fullResetRequested)
 		{
 			resetAll();

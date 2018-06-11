@@ -38,6 +38,8 @@
 #include <boost/filesystem.hpp>
 #include <inttypes.h>
 
+#include <chrono>
+
 namespace lsd_slam
 {
 
@@ -163,6 +165,16 @@ void ROSOutput3DWrapper::publishKeyframe(Frame* keyFrame)
     fMsg.fy = keyFrame->fy(publishLvl);
     fMsg.cx = keyFrame->cx(publishLvl);
     fMsg.cy = keyFrame->cy(publishLvl);
+
+    //****************** Calculate duration   ********************
+    // End tracking frame time
+    std::chrono::system_clock::time_point endTrackingTime = std::chrono::high_resolution_clock::now();
+    // Calculate duration
+    std::chrono::duration<float>    trackingDuration = endTrackingTime - keyFrame->getStartTrackingTime();
+    // Convert to millisaconds
+    std::chrono::milliseconds msDurationTime = std::chrono::duration_cast<std::chrono::milliseconds>(trackingDuration);
+
+    fMsg.trackingTime = msDurationTime.count();
 
     //****************** Additional estimated ********************
     //  Save "my_scale"

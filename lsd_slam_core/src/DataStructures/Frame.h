@@ -28,6 +28,8 @@
 #include "unordered_set"
 #include "util/settings.h"
 
+#include <chrono>
+
 
 namespace lsd_slam
 {
@@ -206,6 +208,10 @@ public:
 
     Sim3 getGroundTruth(){ return data.GTransform; }
 
+    // Get time of start tracking
+    std::chrono::system_clock::time_point getStartTrackingTime() { return data.startTrackingTime; }
+
+
 private:
 
 	void require(int dataFlags, int level = 0);
@@ -236,14 +242,17 @@ private:
 		int width[PYRAMID_LEVELS], height[PYRAMID_LEVELS];
 
 		Eigen::Matrix3f K[PYRAMID_LEVELS], KInv[PYRAMID_LEVELS];
-		float fx[PYRAMID_LEVELS], fy[PYRAMID_LEVELS], cx[PYRAMID_LEVELS], cy[PYRAMID_LEVELS];
-		float fxInv[PYRAMID_LEVELS], fyInv[PYRAMID_LEVELS], cxInv[PYRAMID_LEVELS], cyInv[PYRAMID_LEVELS];
+
+        float fx[PYRAMID_LEVELS],       fy[PYRAMID_LEVELS],     cx[PYRAMID_LEVELS],     cy[PYRAMID_LEVELS];
+        float fxInv[PYRAMID_LEVELS],    fyInv[PYRAMID_LEVELS],  cxInv[PYRAMID_LEVELS],  cyInv[PYRAMID_LEVELS];
 		
 		double timestamp;
 
+        // Start tracking frame
+        std::chrono::system_clock::time_point startTrackingTime;
 		
-		float* image[PYRAMID_LEVELS];
-		bool imageValid[PYRAMID_LEVELS];
+        float*  image[PYRAMID_LEVELS];
+        bool    imageValid[PYRAMID_LEVELS];
 		
 		Eigen::Vector4f* gradients[PYRAMID_LEVELS];
 		bool gradientsValid[PYRAMID_LEVELS];

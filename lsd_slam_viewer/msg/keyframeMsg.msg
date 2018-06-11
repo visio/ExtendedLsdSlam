@@ -21,7 +21,10 @@ int32 kfID
 # 1 - Sawyer joints state
 # 2 - IMU data
 
-uint8 sourceType		
+uint8 sourceType
+
+# Ground truth scale
+float32 trackingTime				
 
 # Sawyer angels *****************************
 # Angles of Sawyer joints
